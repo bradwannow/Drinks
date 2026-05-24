@@ -70,8 +70,11 @@ struct BarDetailView: View {
                 .padding(.horizontal, AppSpacing.screenPadding)
                 .padding(.top, AppSpacing.lg)
                 .padding(.bottom, AppSpacing.xxl)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .scrollIndicators(.hidden)
     }
 
     private func heroSection(bar: Bar) -> some View {
@@ -81,10 +84,11 @@ struct BarDetailView: View {
                 cornerRadius: 0,
                 showGradientOverlay: false
             )
+            .frame(maxWidth: .infinity)
             .frame(height: 360)
-            .clipped()
 
             AppColors.heroGradient
+                .frame(maxWidth: .infinity)
                 .frame(height: 360)
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
@@ -104,12 +108,15 @@ struct BarDetailView: View {
             }
             .padding(AppSpacing.lg)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .clipped()
     }
 
     private func headerSection(bar: Bar) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             Text(bar.name)
                 .displayMediumStyle()
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack(spacing: AppSpacing.md) {
                 Label(bar.formattedRating, systemImage: "star.fill")
@@ -122,7 +129,9 @@ struct BarDetailView: View {
                 Text(bar.formattedDistance)
                     .captionStyle()
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func descriptionSection(bar: Bar) -> some View {
@@ -131,6 +140,8 @@ struct BarDetailView: View {
 
             Text(bar.tagline)
                 .bodyStyle()
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

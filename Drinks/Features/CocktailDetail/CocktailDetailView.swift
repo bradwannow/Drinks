@@ -70,8 +70,11 @@ struct CocktailDetailView: View {
                 .padding(.horizontal, AppSpacing.screenPadding)
                 .padding(.top, AppSpacing.lg)
                 .padding(.bottom, AppSpacing.xxl)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .scrollIndicators(.hidden)
     }
 
     private func heroSection(cocktail: Cocktail) -> some View {
@@ -81,10 +84,11 @@ struct CocktailDetailView: View {
                 cornerRadius: 0,
                 showGradientOverlay: false
             )
+            .frame(maxWidth: .infinity)
             .frame(height: 400)
-            .clipped()
 
             AppColors.heroGradient
+                .frame(maxWidth: .infinity)
                 .frame(height: 400)
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
@@ -92,17 +96,22 @@ struct CocktailDetailView: View {
             }
             .padding(AppSpacing.lg)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .clipped()
     }
 
     private func headerSection(cocktail: Cocktail) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             Text(cocktail.name)
                 .displayMediumStyle()
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             Label(cocktail.barName, systemImage: "mappin.circle.fill")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(AppColors.accentMuted)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder
@@ -128,6 +137,8 @@ struct CocktailDetailView: View {
 
             Text(cocktail.description)
                 .bodyStyle()
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .lineSpacing(4)
         }

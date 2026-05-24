@@ -199,6 +199,46 @@ enum DatabaseRecords {
         }
     }
 
+    struct BarCocktailLinkRow: Decodable {
+        let cocktailID: UUID
+
+        enum CodingKeys: String, CodingKey {
+            case cocktailID = "cocktail_id"
+        }
+    }
+
+    struct SpiritGroupRow: Decodable {
+        let spirit: String
+        let imageURL: URL
+
+        enum CodingKeys: String, CodingKey {
+            case spirit
+            case imageURL = "image_url"
+        }
+    }
+
+    struct NeighborhoodGroupRow: Decodable {
+        let neighborhood: String
+        let imageURL: URL
+
+        enum CodingKeys: String, CodingKey {
+            case neighborhood
+            case imageURL = "image_url"
+        }
+    }
+
+    struct BarIDRow: Decodable {
+        let id: UUID
+    }
+
+    struct SpiritNameRow: Decodable {
+        let spirit: String
+    }
+
+    struct NeighborhoodNameRow: Decodable {
+        let neighborhood: String
+    }
+
     struct ProfileRow: Decodable {
         let id: UUID
         let username: String?

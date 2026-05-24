@@ -307,4 +307,290 @@ final class DatabaseService {
 
         return rows.compactMap { $0.toCocktail() }
     }
+
+    // MARK: - Search & Discovery
+
+    func search(
+        query: String,
+        filters: SearchFilters,
+        savedBarIDs: Set<UUID>,
+        savedCocktailIDs: Set<UUID>,
+        limit: Int = 20
+    ) async throws -> SearchResults {
+        async let happyHourBarIDs = fetchActiveHappyHourBarIDs()
+
+        let activeHappyHourBarIDs = try await happyHourBarIDs
+        let cocktailIDsInNeighborhood: Set<UUID>?
+        if let neighborhood = filters.neighborhood {
+            cocktailIDsInNeighborhood = try await fetchCocktailIDs(inNeighborhood: neighborhood)
+        } else {
+            cocktailIDsInNeighborhood = nil
+        }
+
+        async let barsTask = searchBars(
+            query: query,
+            filters: filters,
+            savedBarIDs: savedBarIDs,
+            happyHourBarIDs: activeHappyHourBarIDs,
+            limit: limit
+        )
+        async let cocktailsTask = searchCocktails(
+            query: query,
+            filters: filters,
+            savedCocktailIDs: savedCocktailIDs,
+            cocktailIDsInNeighborhood: cocktailIDsInNeighborhood,
+            limit: limit
+        )
+        async let neighborhoodsTask = searchNeighborhoods(matching: query, limit: 6)
+        async let spiritsTask = searchSpirits(matching: query, limit: 6)
+
+        let (bars, cocktails, neighborhoods, spirits) = try await (
+            barsTask,
+            cocktailsTask,
+            neighborhoodsTask,
+            spiritsTask
+        )
+
+        return SearchResults(
+            bars: bars,
+            cocktails: cocktails,
+            neighborhoods: neighborhoods,
+            spirits: spirits
+        )
+    }
+
+    func fetchRecommendedCocktails(limit: Int = 8) async throws -> [Cocktail] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.CocktailRow] = try await client
+            .from(Table.cocktails)
+            .select("*, bar_cocktails(bars(name))")
+            .or("is_trending.eq.true,is_featured.eq.true")
+            .order("is_featured", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+
+        return rows.compactMap { $0.toCocktail() }
+    }
+
+    func fetchSeasonalCocktails(limit: Int = 8) async throws -> [Cocktail] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.CocktailRow] = try await client
+            .from(Table.cocktails)
+            .select("*, bar_cocktails(bars(name))")
+            .eq("is_seasonal", value: true)
+            .limit(limit)
+            .execute()
+            .value
+
+        return rows.compactMap { $0.toCocktail() }
+    }
+
+    func fetchSpiritCategories() async throws -> [SpiritCategory] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.SpiritGroupRow] = try await client
+            .from(Table.cocktails)
+            .select("spirit, image_url")
+            .execute()
+            .value
+
+        var grouped: [String: (count: Int, imageURL: URL)] = [:]
+        for row in rows {
+            if var existing = grouped[row.spirit] {
+                existing.count += 1
+                grouped[row.spirit] = existing
+            } else {
+                grouped[row.spirit] = (1, row.imageURL)
+            }
+        }
+
+        return grouped
+            .map { SpiritCategory(name: $0.key, cocktailCount: $0.value.count, imageURL: $0.value.imageURL) }
+            .sorted { $0.cocktailCount > $1.cocktailCount }
+    }
+
+    func fetchNeighborhoodCategories() async throws -> [NeighborhoodCategory] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.NeighborhoodGroupRow] = try await client
+            .from(Table.bars)
+            .select("neighborhood, image_url")
+            .execute()
+            .value
+
+        var grouped: [String: (count: Int, imageURL: URL)] = [:]
+        for row in rows {
+            if var existing = grouped[row.neighborhood] {
+                existing.count += 1
+                grouped[row.neighborhood] = existing
+            } else {
+                grouped[row.neighborhood] = (1, row.imageURL)
+            }
+        }
+
+        return grouped
+            .map { NeighborhoodCategory(name: $0.key, barCount: $0.value.count, imageURL: $0.value.imageURL) }
+            .sorted { $0.barCount > $1.barCount }
+    }
+
+    func fetchAvailableSpirits() async throws -> [String] {
+        try await fetchSpiritCategories().map(\.name).sorted()
+    }
+
+    func fetchAvailableNeighborhoods() async throws -> [String] {
+        try await fetchNeighborhoodCategories().map(\.name).sorted()
+    }
+
+    func fetchActiveHappyHourBarIDs() async throws -> Set<UUID> {
+        let hours = try await fetchHappyHours()
+        return Set(hours.filter { HappyHourUtility.isActiveNow($0) }.map(\.barID))
+    }
+
+    private func searchBars(
+        query: String,
+        filters: SearchFilters,
+        savedBarIDs: Set<UUID>,
+        happyHourBarIDs: Set<UUID>,
+        limit: Int
+    ) async throws -> [Bar] {
+        let client = try manager.requireClient()
+        var request = client.from(Table.bars).select()
+
+        if !query.isEmpty {
+            let pattern = ilikePattern(query)
+            request = request.or("name.ilike.\(pattern),neighborhood.ilike.\(pattern),tagline.ilike.\(pattern)")
+        }
+
+        if let neighborhood = filters.neighborhood {
+            request = request.eq("neighborhood", value: neighborhood)
+        }
+
+        let rows: [DatabaseRecords.BarRow] = try await request
+            .order("rating", ascending: false)
+            .limit(limit * 2)
+            .execute()
+            .value
+
+        var bars = rows.map { $0.toBar(relativeTo: referenceCoordinate) }
+
+        if filters.happyHourNow {
+            bars = bars.filter { happyHourBarIDs.contains($0.id) }
+        }
+
+        if filters.savedOnly {
+            bars = bars.filter { savedBarIDs.contains($0.id) }
+        }
+
+        return Array(bars.prefix(limit))
+    }
+
+    private func searchCocktails(
+        query: String,
+        filters: SearchFilters,
+        savedCocktailIDs: Set<UUID>,
+        cocktailIDsInNeighborhood: Set<UUID>?,
+        limit: Int
+    ) async throws -> [Cocktail] {
+        let client = try manager.requireClient()
+        var request = client.from(Table.cocktails).select("*, bar_cocktails(bars(name))")
+
+        if !query.isEmpty {
+            let pattern = ilikePattern(query)
+            request = request.or("name.ilike.\(pattern),description.ilike.\(pattern),spirit.ilike.\(pattern)")
+        }
+
+        if let spirit = filters.spirit {
+            request = request.eq("spirit", value: spirit)
+        }
+
+        if filters.featuredOnly {
+            request = request.eq("is_featured", value: true)
+        }
+
+        if filters.seasonalOnly {
+            request = request.eq("is_seasonal", value: true)
+        }
+
+        let rows: [DatabaseRecords.CocktailRow] = try await request
+            .order("is_featured", ascending: false)
+            .limit(limit * 2)
+            .execute()
+            .value
+
+        var cocktails = rows.compactMap { $0.toCocktail() }
+
+        if let cocktailIDsInNeighborhood {
+            cocktails = cocktails.filter { cocktailIDsInNeighborhood.contains($0.id) }
+        }
+
+        if filters.savedOnly {
+            cocktails = cocktails.filter { savedCocktailIDs.contains($0.id) }
+        }
+
+        return Array(cocktails.prefix(limit))
+    }
+
+    private func searchNeighborhoods(matching query: String, limit: Int) async throws -> [String] {
+        guard !query.isEmpty else { return [] }
+
+        let client = try manager.requireClient()
+        let pattern = ilikePattern(query)
+        let rows: [DatabaseRecords.NeighborhoodNameRow] = try await client
+            .from(Table.bars)
+            .select("neighborhood")
+            .ilike("neighborhood", pattern: pattern)
+            .limit(limit * 3)
+            .execute()
+            .value
+
+        var seen = Set<String>()
+        return rows.map(\.neighborhood).filter { seen.insert($0).inserted }
+    }
+
+    private func searchSpirits(matching query: String, limit: Int) async throws -> [String] {
+        guard !query.isEmpty else { return [] }
+
+        let client = try manager.requireClient()
+        let pattern = ilikePattern(query)
+        let rows: [DatabaseRecords.SpiritNameRow] = try await client
+            .from(Table.cocktails)
+            .select("spirit")
+            .ilike("spirit", pattern: pattern)
+            .limit(limit * 3)
+            .execute()
+            .value
+
+        var seen = Set<String>()
+        return rows.map(\.spirit).filter { seen.insert($0).inserted }
+    }
+
+    private func fetchCocktailIDs(inNeighborhood neighborhood: String) async throws -> Set<UUID> {
+        let client = try manager.requireClient()
+        let barRows: [DatabaseRecords.BarIDRow] = try await client
+            .from(Table.bars)
+            .select("id")
+            .eq("neighborhood", value: neighborhood)
+            .execute()
+            .value
+
+        let barIDs = barRows.map(\.id)
+        guard !barIDs.isEmpty else { return [] }
+
+        let linkRows: [DatabaseRecords.BarCocktailLinkRow] = try await client
+            .from("bar_cocktails")
+            .select("cocktail_id")
+            .in("bar_id", values: barIDs)
+            .execute()
+            .value
+
+        return Set(linkRows.map(\.cocktailID))
+    }
+
+    private func ilikePattern(_ query: String) -> String {
+        let escaped = query
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "%", with: "\\%")
+            .replacingOccurrences(of: "_", with: "\\_")
+        return "%\(escaped)%"
+    }
 }

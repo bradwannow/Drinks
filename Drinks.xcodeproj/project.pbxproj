@@ -37,6 +37,15 @@
 		A7B8C9D0E1F2345678901246 /* BadgePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F2345678901246 /* BadgePill.swift */; };
 		A7B8C9D0E1F2345678901247 /* CocktailRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F2345678901247 /* CocktailRow.swift */; };
 		A7B8C9D0E1F2345678901248 /* RelatedCocktailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F2345678901248 /* RelatedCocktailCard.swift */; };
+		C8D9E0F1A2B3456789012341 /* SearchFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012341 /* SearchFilters.swift */; };
+		C8D9E0F1A2B3456789012342 /* SearchDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012342 /* SearchDiscovery.swift */; };
+		C8D9E0F1A2B3456789012343 /* RecentSearchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012343 /* RecentSearchStore.swift */; };
+		C8D9E0F1A2B3456789012344 /* HappyHourUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012344 /* HappyHourUtility.swift */; };
+		C8D9E0F1A2B3456789012345 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012345 /* FlowLayout.swift */; };
+		C8D9E0F1A2B3456789012346 /* FilterChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012346 /* FilterChip.swift */; };
+		C8D9E0F1A2B3456789012347 /* DiscoveryTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012347 /* DiscoveryTile.swift */; };
+		C8D9E0F1A2B3456789012348 /* FeaturedCollectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012348 /* FeaturedCollectionCard.swift */; };
+		C8D9E0F1A2B3456789012349 /* SearchFilterBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012349 /* SearchFilterBar.swift */; };
 		A7B8C9D0E1F2345678901249 /* BarMenuCocktail.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F2345678901249 /* BarMenuCocktail.swift */; };
 		A7B8C9D0E1F234567890124A /* HapticFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F234567890124A /* HapticFeedback.swift */; };
 		A7B8C9D0E1F234567890124B /* DetailNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F234567890124B /* DetailNavigation.swift */; };
@@ -159,6 +168,15 @@
 		B7B8C9D0E1F2345678901249 /* BarMenuCocktail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarMenuCocktail.swift; sourceTree = "<group>"; };
 		B7B8C9D0E1F234567890124A /* HapticFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticFeedback.swift; sourceTree = "<group>"; };
 		B7B8C9D0E1F234567890124B /* DetailNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailNavigation.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012341 /* SearchFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFilters.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012342 /* SearchDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchDiscovery.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012343 /* RecentSearchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentSearchStore.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012344 /* HappyHourUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HappyHourUtility.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012345 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012346 /* FilterChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterChip.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012347 /* DiscoveryTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryTile.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012348 /* FeaturedCollectionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturedCollectionCard.swift; sourceTree = "<group>"; };
+		D8E9F0A1B2C3456789012349 /* SearchFilterBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFilterBar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 		24E21C692FC279D9002C4733 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -187,6 +205,7 @@
 			children = (
 				AA6E6C40E0B246C0BA048BF3 /* SearchViewModel.swift */,
 				3C6C57888BC64F1898A62EA3 /* SearchView.swift */,
+				D8E9F0A1B2C3456789012349 /* SearchFilterBar.swift */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -271,6 +290,10 @@
 				B7B8C9D0E1F2345678901246 /* BadgePill.swift */,
 				B7B8C9D0E1F2345678901247 /* CocktailRow.swift */,
 				B7B8C9D0E1F2345678901248 /* RelatedCocktailCard.swift */,
+				D8E9F0A1B2C3456789012345 /* FlowLayout.swift */,
+				D8E9F0A1B2C3456789012346 /* FilterChip.swift */,
+				D8E9F0A1B2C3456789012347 /* DiscoveryTile.swift */,
+				D8E9F0A1B2C3456789012348 /* FeaturedCollectionCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -294,6 +317,7 @@
 				F1B2C3D4E5F6478901234574 /* LocationUtility.swift */,
 				B7B8C9D0E1F234567890124A /* HapticFeedback.swift */,
 				B7B8C9D0E1F234567890124B /* DetailNavigation.swift */,
+				D8E9F0A1B2C3456789012344 /* HappyHourUtility.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -371,6 +395,8 @@
 				F1B2C3D4E5F6478901234571 /* SavedBar.swift */,
 				F1B2C3D4E5F6478901234572 /* SavedCocktail.swift */,
 				F1B2C3D4E5F6478901234573 /* DatabaseRecords.swift */,
+				D8E9F0A1B2C3456789012341 /* SearchFilters.swift */,
+				D8E9F0A1B2C3456789012342 /* SearchDiscovery.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -389,6 +415,7 @@
 			children = (
 				8458A5C1459C43BBBD3DCE0D /* MockDataService.swift */,
 				B7B8C9D0E1F2345678901244 /* SaveStore.swift */,
+				D8E9F0A1B2C3456789012343 /* RecentSearchStore.swift */,
 				C2D3E4F5A6B7478901234561 /* Supabase */,
 			);
 			path = Services;
@@ -626,6 +653,15 @@
 				A7B8C9D0E1F2345678901249 /* BarMenuCocktail.swift in Sources */,
 				A7B8C9D0E1F234567890124A /* HapticFeedback.swift in Sources */,
 				A7B8C9D0E1F234567890124B /* DetailNavigation.swift in Sources */,
+				C8D9E0F1A2B3456789012341 /* SearchFilters.swift in Sources */,
+				C8D9E0F1A2B3456789012342 /* SearchDiscovery.swift in Sources */,
+				C8D9E0F1A2B3456789012343 /* RecentSearchStore.swift in Sources */,
+				C8D9E0F1A2B3456789012344 /* HappyHourUtility.swift in Sources */,
+				C8D9E0F1A2B3456789012345 /* FlowLayout.swift in Sources */,
+				C8D9E0F1A2B3456789012346 /* FilterChip.swift in Sources */,
+				C8D9E0F1A2B3456789012347 /* DiscoveryTile.swift in Sources */,
+				C8D9E0F1A2B3456789012348 /* FeaturedCollectionCard.swift in Sources */,
+				C8D9E0F1A2B3456789012349 /* SearchFilterBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

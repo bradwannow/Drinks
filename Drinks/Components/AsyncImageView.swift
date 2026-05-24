@@ -7,32 +7,38 @@ struct AsyncImageView: View {
     var showGradientOverlay: Bool = false
 
     var body: some View {
-        Group {
-            if let url {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        placeholder
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: contentMode)
-                    case .failure:
-                        failureView
-                    @unknown default:
-                        placeholder
-                    }
+        Color.clear
+            .overlay {
+                imageBody
+            }
+            .overlay {
+                if showGradientOverlay {
+                    AppColors.cardOverlay
                 }
-            } else {
-                failureView
             }
-        }
-        .overlay {
-            if showGradientOverlay {
-                AppColors.cardOverlay
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    }
+
+    @ViewBuilder
+    private var imageBody: some View {
+        if let url {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .empty:
+                    placeholder
+                case .success(let image):
+                    image
+                        .resizable()
+                        .modifier(ImageScaling(mode: contentMode))
+                case .failure:
+                    failureView
+                @unknown default:
+                    placeholder
+                }
             }
+        } else {
+            failureView
         }
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 
     private var placeholder: some View {
@@ -49,6 +55,29 @@ struct AsyncImageView: View {
             Image(systemName: "wineglass")
                 .font(.title2)
                 .foregroundStyle(AppColors.textTertiary)
+        }
+    }
+}
+
+private struct ImageScaling: ViewModifier {
+    let mode: ContentMode
+
+    func body(content: Content) -> some View {
+        switch mode {
+        case .fill:
+            content
+                .scaledToFill()
+                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                .clipped()
+        case .fit:
+            content
+                .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        @unknown default:
+            content
+                .scaledToFill()
+                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                .clipped()
         }
     }
 }
