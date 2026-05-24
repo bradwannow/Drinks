@@ -5,6 +5,7 @@ struct ProfileMenuItem: Identifiable {
     let title: String
     let icon: String
     let subtitle: String?
+    var isDestructive: Bool = false
 }
 
 @MainActor
@@ -24,6 +25,9 @@ final class ProfileViewModel: ObservableObject {
             [
                 ProfileMenuItem(title: "Help & Support", icon: "questionmark.circle", subtitle: nil),
                 ProfileMenuItem(title: "About Pour", icon: "info.circle", subtitle: "Version 1.0")
+            ],
+            [
+                ProfileMenuItem(title: "Sign Out", icon: "rectangle.portrait.and.arrow.right", subtitle: nil, isDestructive: true)
             ]
         ]
     }

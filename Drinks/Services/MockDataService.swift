@@ -12,7 +12,8 @@ enum MockDataService {
         barName: "Velvet Room",
         spirit: "Gin",
         isSeasonal: false,
-        isFeatured: true
+        isFeatured: true,
+        isTrending: true
     )
 
     static let cocktails: [Cocktail] = [
@@ -23,7 +24,8 @@ enum MockDataService {
             imageURL: url("https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80"),
             barName: "The Copper Still",
             spirit: "Bourbon",
-            isSeasonal: true
+            isSeasonal: true,
+            isTrending: true
         ),
         Cocktail(
             name: "Garden Spritz",
@@ -31,14 +33,16 @@ enum MockDataService {
             imageURL: url("https://images.unsplash.com/photo-1551538826-4c7acaaef387?w=800&q=80"),
             barName: "Botanica Bar",
             spirit: "Aperitif",
-            isSeasonal: true
+            isSeasonal: true,
+            isTrending: true
         ),
         Cocktail(
             name: "Paloma Rosa",
             description: "Reposado tequila, grapefruit, hibiscus, lime salt rim.",
             imageURL: url("https://images.unsplash.com/photo-1546171753-97d0dbd11023?w=800&q=80"),
             barName: "Casa Nocturna",
-            spirit: "Tequila"
+            spirit: "Tequila",
+            isTrending: true
         )
     ]
 
@@ -49,8 +53,10 @@ enum MockDataService {
             tagline: "Speakeasy classics, candlelit booths",
             rating: 4.8,
             imageURL: url("https://images.unsplash.com/photo-1572116469694-31de07792adf?w=600&q=80"),
-            distanceMiles: 0.4,
-            isTrending: true
+            latitude: 40.7336,
+            longitude: -74.0027,
+            isTrending: true,
+            isFeatured: true
         ),
         Bar(
             name: "The Copper Still",
@@ -58,8 +64,10 @@ enum MockDataService {
             tagline: "Whiskey-forward, live jazz nightly",
             rating: 4.7,
             imageURL: url("https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&q=80"),
-            distanceMiles: 0.9,
-            isTrending: true
+            latitude: 40.7465,
+            longitude: -74.0014,
+            isTrending: true,
+            isFeatured: true
         ),
         Bar(
             name: "Noir & Neat",
@@ -67,7 +75,8 @@ enum MockDataService {
             tagline: "Minimalist cocktails, maximalist flavor",
             rating: 4.6,
             imageURL: url("https://images.unsplash.com/photo-1566417713940-b755a4550a42?w=600&q=80"),
-            distanceMiles: 1.2,
+            latitude: 40.7233,
+            longitude: -74.0030,
             isTrending: true
         ),
         Bar(
@@ -76,7 +85,8 @@ enum MockDataService {
             tagline: "Garden-to-glass seasonal menus",
             rating: 4.5,
             imageURL: url("https://images.unsplash.com/photo-1571249477469-303375066f11?w=600&q=80"),
-            distanceMiles: 1.5,
+            latitude: 40.7265,
+            longitude: -73.9815,
             isTrending: true
         )
     ]
@@ -115,7 +125,8 @@ enum MockDataService {
             tagline: "Waterfront views, rotating tap list",
             rating: 4.4,
             imageURL: url("https://images.unsplash.com/photo-1572116469694-31de07792adf?w=600&q=80"),
-            distanceMiles: 0.2
+            latitude: 40.7320,
+            longitude: -74.0050
         ),
         Bar(
             name: "The Amber Lounge",
@@ -123,7 +134,8 @@ enum MockDataService {
             tagline: "Art deco interiors, classic martinis",
             rating: 4.3,
             imageURL: url("https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&q=80"),
-            distanceMiles: 0.3
+            latitude: 40.7345,
+            longitude: -74.0010
         ),
         Bar(
             name: "Lowlight Social",
@@ -131,7 +143,8 @@ enum MockDataService {
             tagline: "Late-night bites and natural wines",
             rating: 4.2,
             imageURL: url("https://images.unsplash.com/photo-1571249477469-303375066f11?w=600&q=80"),
-            distanceMiles: 0.5
+            latitude: 40.7310,
+            longitude: -74.0040
         )
     ]
 

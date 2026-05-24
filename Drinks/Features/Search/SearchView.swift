@@ -30,6 +30,7 @@ struct SearchView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(AppColors.background, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .detailNavigation()
         }
     }
 
@@ -88,7 +89,10 @@ struct SearchView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.md) {
                     ForEach(viewModel.seasonalCocktails) { cocktail in
-                        SeasonalCocktailChip(cocktail: cocktail)
+                        NavigationLink(value: cocktail) {
+                            SeasonalCocktailChip(cocktail: cocktail)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -104,7 +108,10 @@ struct SearchView: View {
 
             VStack(spacing: AppSpacing.sm) {
                 ForEach(viewModel.filteredBars) { bar in
-                    BarCard(bar: bar, style: .wide)
+                    NavigationLink(value: bar) {
+                        BarCard(bar: bar, style: .wide)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

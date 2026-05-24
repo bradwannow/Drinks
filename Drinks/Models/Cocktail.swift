@@ -1,6 +1,6 @@
 import Foundation
 
-struct Cocktail: Identifiable, Hashable {
+struct Cocktail: Identifiable, Hashable, Codable {
     let id: UUID
     let name: String
     let description: String
@@ -9,6 +9,7 @@ struct Cocktail: Identifiable, Hashable {
     let spirit: String
     let isSeasonal: Bool
     let isFeatured: Bool
+    let isTrending: Bool
 
     init(
         id: UUID = UUID(),
@@ -18,7 +19,8 @@ struct Cocktail: Identifiable, Hashable {
         barName: String,
         spirit: String,
         isSeasonal: Bool = false,
-        isFeatured: Bool = false
+        isFeatured: Bool = false,
+        isTrending: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -28,5 +30,18 @@ struct Cocktail: Identifiable, Hashable {
         self.spirit = spirit
         self.isSeasonal = isSeasonal
         self.isFeatured = isFeatured
+        self.isTrending = isTrending
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case description
+        case imageURL = "image_url"
+        case barName = "bar_name"
+        case spirit
+        case isSeasonal = "is_seasonal"
+        case isFeatured = "is_featured"
+        case isTrending = "is_trending"
     }
 }

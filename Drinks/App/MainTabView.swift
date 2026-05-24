@@ -45,5 +45,7 @@ struct MainTabView: View {
 
 #Preview {
     MainTabView()
+        .environmentObject(AuthViewModel())
+        .environmentObject(SaveStore.shared)
         .preferredColorScheme(.dark)
 }

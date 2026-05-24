@@ -6,22 +6,47 @@ struct SavedView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                if viewModel.isEmpty {
+                if viewModel.isLoading && viewModel.savedBars.isEmpty && viewModel.savedCocktails.isEmpty {
+                    loadingState
+                } else if let errorMessage = viewModel.errorMessage,
+                          viewModel.savedBars.isEmpty && viewModel.savedCocktails.isEmpty {
+                    errorState(message: errorMessage)
+                } else if viewModel.isEmpty {
                     emptyState
                 } else {
                     content
                 }
+            }
+            .refreshable {
+                await viewModel.refresh()
             }
             .screenBackground()
             .navigationTitle("Saved")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(AppColors.background, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .detailNavigation()
+            .task {
+                await viewModel.load()
+            }
         }
     }
 
     private var content: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xl) {
+            if let errorMessage = viewModel.errorMessage {
+                ContentStateView(
+                    icon: "exclamationmark.triangle",
+                    title: "Couldn't refresh saves",
+                    message: errorMessage,
+                    actionTitle: "Try again",
+                    action: {
+                        Task { await viewModel.refresh() }
+                    },
+                    style: .card
+                )
+            }
+
             if !viewModel.savedBars.isEmpty {
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
                     SectionHeader(title: "Bars", subtitle: "\(viewModel.savedBars.count) saved")
@@ -29,7 +54,10 @@ struct SavedView: View {
 
                     VStack(spacing: AppSpacing.sm) {
                         ForEach(viewModel.savedBars) { bar in
-                            BarCard(bar: bar, style: .wide)
+                            NavigationLink(value: bar) {
+                                BarCard(bar: bar, style: .wide)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .fadeInOnAppear(delay: 0.05)
@@ -43,7 +71,10 @@ struct SavedView: View {
 
                     VStack(spacing: AppSpacing.sm) {
                         ForEach(viewModel.savedCocktails) { cocktail in
-                            SavedCocktailRow(cocktail: cocktail)
+                            NavigationLink(value: cocktail) {
+                                SavedCocktailRow(cocktail: cocktail)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .fadeInOnAppear(delay: 0.15)
@@ -52,6 +83,32 @@ struct SavedView: View {
         }
         .padding(.horizontal, AppSpacing.screenPadding)
         .padding(.bottom, AppSpacing.xxl)
+    }
+
+    private var loadingState: some View {
+        VStack(spacing: AppSpacing.md) {
+            ProgressView()
+                .tint(AppColors.accent)
+            Text("Loading your saves…")
+                .captionStyle()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, AppSpacing.xxl)
+    }
+
+    private func errorState(message: String) -> some View {
+        ContentStateView(
+            icon: "wifi.exclamationmark",
+            title: "Couldn't load saves",
+            message: message,
+            actionTitle: "Try again",
+            action: {
+                Task { await viewModel.refresh() }
+            },
+            style: .card
+        )
+        .padding(AppSpacing.screenPadding)
+        .padding(.top, AppSpacing.xl)
     }
 
     private var emptyState: some View {
@@ -99,6 +156,10 @@ private struct SavedCocktailRow: View {
             }
 
             Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(AppColors.textTertiary)
         }
         .padding(AppSpacing.sm)
         .background {
@@ -111,5 +172,6 @@ private struct SavedCocktailRow: View {
 
 #Preview {
     SavedView()
+        .environmentObject(SaveStore.shared)
         .preferredColorScheme(.dark)
 }

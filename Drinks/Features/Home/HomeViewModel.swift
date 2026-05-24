@@ -2,31 +2,56 @@ import Foundation
 
 @MainActor
 final class HomeViewModel: ObservableObject {
-    @Published private(set) var featuredCocktail: Cocktail
-    @Published private(set) var trendingBars: [Bar]
-    @Published private(set) var happyHours: [HappyHour]
-    @Published private(set) var nearbyBars: [Bar]
+    @Published private(set) var featuredCocktail: Cocktail?
+    @Published private(set) var trendingBars: [Bar] = []
+    @Published private(set) var happyHours: [HappyHour] = []
+    @Published private(set) var nearbyBars: [Bar] = []
     @Published private(set) var isLoading = false
+    @Published private(set) var errorMessage: String?
 
-    init(
-        featuredCocktail: Cocktail = MockDataService.featuredCocktail,
-        trendingBars: [Bar] = MockDataService.trendingBars,
-        happyHours: [HappyHour] = MockDataService.happyHours,
-        nearbyBars: [Bar] = MockDataService.nearbyBars
-    ) {
-        self.featuredCocktail = featuredCocktail
-        self.trendingBars = trendingBars
-        self.happyHours = happyHours
-        self.nearbyBars = nearbyBars
+    private let database: DatabaseService
+
+    init(database: DatabaseService = .shared) {
+        self.database = database
+    }
+
+    func load() async {
+        await refresh()
     }
 
     func refresh() async {
         isLoading = true
-        try? await Task.sleep(for: .milliseconds(400))
-        featuredCocktail = MockDataService.featuredCocktail
-        trendingBars = MockDataService.trendingBars
-        happyHours = MockDataService.happyHours
-        nearbyBars = MockDataService.nearbyBars
+        errorMessage = nil
+
+        do {
+            async let featuredBarsTask = database.fetchFeaturedBars()
+            async let trendingCocktailsTask = database.fetchTrendingCocktails()
+            async let happyHoursTask = database.fetchHappyHours()
+            async let nearbyBarsTask = database.fetchNearbyBars()
+
+            let (bars, cocktails, hours, nearby) = try await (
+                featuredBarsTask,
+                trendingCocktailsTask,
+                happyHoursTask,
+                nearbyBarsTask
+            )
+
+            trendingBars = bars
+            featuredCocktail = cocktails.first(where: \.isFeatured) ?? cocktails.first
+            happyHours = hours
+            nearbyBars = nearby
+        } catch {
+            errorMessage = NetworkError.map(error).errorDescription
+        }
+
         isLoading = false
+    }
+
+    var hasLoadedContent: Bool {
+        featuredCocktail != nil || !trendingBars.isEmpty || !happyHours.isEmpty || !nearbyBars.isEmpty
+    }
+
+    var shouldShowContentSections: Bool {
+        hasLoadedContent || (errorMessage == nil && !isLoading)
     }
 }

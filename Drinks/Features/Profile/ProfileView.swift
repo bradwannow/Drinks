@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @EnvironmentObject private var authViewModel: AuthViewModel
     @StateObject private var viewModel = ProfileViewModel()
 
     var body: some View {
@@ -31,6 +32,29 @@ struct ProfileView: View {
 
     private var profileHeader: some View {
         HStack(spacing: AppSpacing.md) {
+            avatarView
+                .glowShadow()
+
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                Text(displayName)
+                    .titleStyle()
+
+                Text(subtitle)
+                    .bodyStyle()
+            }
+
+            Spacer()
+        }
+        .padding(.top, AppSpacing.sm)
+    }
+
+    @ViewBuilder
+    private var avatarView: some View {
+        if let avatarURL = authViewModel.profile?.avatarURL {
+            AsyncImageView(url: avatarURL, contentMode: .fill)
+                .frame(width: 72, height: 72)
+                .clipShape(Circle())
+        } else {
             ZStack {
                 Circle()
                     .fill(
@@ -42,30 +66,34 @@ struct ProfileView: View {
                     )
                     .frame(width: 72, height: 72)
 
-                Text("BW")
+                Text(authViewModel.profile?.initials ?? "?")
                     .font(.system(size: 24, weight: .semibold, design: .serif))
                     .foregroundStyle(AppColors.textPrimary)
             }
-            .glowShadow()
-
-            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                Text("Brad Wannow")
-                    .titleStyle()
-
-                Text("Cocktail explorer · West Village")
-                    .bodyStyle()
-            }
-
-            Spacer()
         }
-        .padding(.top, AppSpacing.sm)
+    }
+
+    private var displayName: String {
+        authViewModel.profile?.displayName
+            ?? authViewModel.profile?.username
+            ?? "Pour Member"
+    }
+
+    private var subtitle: String {
+        if let handle = authViewModel.profile?.handle {
+            return handle
+        }
+        if let email = authViewModel.userEmail {
+            return email
+        }
+        return "Cocktail explorer"
     }
 
     private var statsRow: some View {
         HStack(spacing: AppSpacing.sm) {
-            StatCard(value: "12", label: "Visited")
-            StatCard(value: "8", label: "Saved")
-            StatCard(value: "24", label: "Pours")
+            StatCard(value: "—", label: "Visited")
+            StatCard(value: "—", label: "Saved")
+            StatCard(value: "—", label: "Pours")
         }
     }
 
@@ -73,7 +101,13 @@ struct ProfileView: View {
         PourCard(padding: 0) {
             VStack(spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                    ProfileMenuRow(item: item)
+                    if item.title == "Sign Out" {
+                        ProfileMenuRow(item: item, action: {
+                            Task { await authViewModel.signOut() }
+                        })
+                    } else {
+                        ProfileMenuRow(item: item)
+                    }
 
                     if index < items.count - 1 {
                         Divider()
@@ -115,17 +149,32 @@ private struct StatCard: View {
 
 private struct ProfileMenuRow: View {
     let item: ProfileMenuItem
+    var action: (() -> Void)?
 
     var body: some View {
+        Group {
+            if let action {
+                Button(action: action) {
+                    rowContent
+                }
+                .buttonStyle(.plain)
+            } else {
+                rowContent
+            }
+        }
+    }
+
+    private var rowContent: some View {
         HStack(spacing: AppSpacing.md) {
             Image(systemName: item.icon)
                 .font(.system(size: 16))
-                .foregroundStyle(AppColors.accent)
+                .foregroundStyle(item.isDestructive ? AppColors.accentSecondary : AppColors.accent)
                 .frame(width: 28)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)
                     .headlineStyle()
+                    .foregroundStyle(item.isDestructive ? AppColors.accentSecondary : AppColors.textPrimary)
 
                 if let subtitle = item.subtitle {
                     Text(subtitle)
@@ -135,9 +184,11 @@ private struct ProfileMenuRow: View {
 
             Spacer()
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(AppColors.textTertiary)
+            if action == nil {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+            }
         }
         .padding(.horizontal, AppSpacing.md)
         .padding(.vertical, AppSpacing.sm + 2)
@@ -146,5 +197,6 @@ private struct ProfileMenuRow: View {
 
 #Preview {
     ProfileView()
+        .environmentObject(AuthViewModel())
         .preferredColorScheme(.dark)
 }

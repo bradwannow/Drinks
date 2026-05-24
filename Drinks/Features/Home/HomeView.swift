@@ -10,17 +10,27 @@ struct HomeView: View {
                     header
                         .fadeInOnAppear()
 
-                    FeaturedCocktailCard(cocktail: viewModel.featuredCocktail)
-                        .fadeInOnAppear(delay: 0.05)
+                    if let errorMessage = viewModel.errorMessage {
+                        errorBanner(message: errorMessage)
+                            .fadeInOnAppear(delay: 0.03)
+                    }
 
-                    trendingSection
-                        .fadeInOnAppear(delay: 0.1)
+                    if viewModel.isLoading && !viewModel.hasLoadedContent {
+                        HomeLoadingOverlay()
+                            .fadeInOnAppear(delay: 0.05)
+                    } else if viewModel.shouldShowContentSections {
+                        featuredSection
+                            .fadeInOnAppear(delay: 0.05)
 
-                    happyHourSection
-                        .fadeInOnAppear(delay: 0.15)
+                        trendingSection
+                            .fadeInOnAppear(delay: 0.1)
 
-                    nearbySection
-                        .fadeInOnAppear(delay: 0.2)
+                        happyHourSection
+                            .fadeInOnAppear(delay: 0.15)
+
+                        nearbySection
+                            .fadeInOnAppear(delay: 0.2)
+                    }
                 }
                 .padding(.horizontal, AppSpacing.screenPadding)
                 .padding(.bottom, AppSpacing.xxl)
@@ -30,6 +40,10 @@ struct HomeView: View {
             }
             .screenBackground()
             .toolbar(.hidden, for: .navigationBar)
+            .detailNavigation()
+            .task {
+                await viewModel.load()
+            }
         }
     }
 
@@ -53,6 +67,29 @@ struct HomeView: View {
         }
     }
 
+    @ViewBuilder
+    private var featuredSection: some View {
+        if let cocktail = viewModel.featuredCocktail {
+            NavigationLink(value: cocktail) {
+                FeaturedCocktailCard(cocktail: cocktail)
+            }
+            .buttonStyle(.plain)
+            .overlay(alignment: .topTrailing) {
+                    if viewModel.isLoading {
+                        loadingBadge
+                            .padding(AppSpacing.md)
+                    }
+                }
+        } else if !viewModel.isLoading && viewModel.errorMessage == nil {
+            ContentStateView(
+                icon: "sparkles",
+                title: "No featured pour",
+                message: "We're lining up tonight's signature cocktail.",
+                style: .card
+            )
+        }
+    }
+
     private var trendingSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             SectionHeader(
@@ -61,10 +98,21 @@ struct HomeView: View {
                 actionTitle: "See all"
             ) {}
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: AppSpacing.md) {
-                    ForEach(viewModel.trendingBars) { bar in
-                        BarCard(bar: bar, style: .compact)
+            if viewModel.trendingBars.isEmpty && !viewModel.isLoading && viewModel.errorMessage == nil {
+                ContentStateView(
+                    icon: "building.2",
+                    title: "No trending bars",
+                    message: "New spots will appear here soon."
+                )
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.md) {
+                        ForEach(viewModel.trendingBars) { bar in
+                            NavigationLink(value: bar) {
+                                BarCard(bar: bar, style: .compact)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
             }
@@ -79,9 +127,20 @@ struct HomeView: View {
                 actionTitle: "See all"
             ) {}
 
-            VStack(spacing: AppSpacing.sm) {
-                ForEach(viewModel.happyHours) { happyHour in
-                    HappyHourRow(happyHour: happyHour)
+            if viewModel.happyHours.isEmpty && !viewModel.isLoading && viewModel.errorMessage == nil {
+                ContentStateView(
+                    icon: "clock",
+                    title: "No happy hours",
+                    message: "Check back for deals near you."
+                )
+            } else {
+                VStack(spacing: AppSpacing.sm) {
+                    ForEach(viewModel.happyHours) { happyHour in
+                        NavigationLink(value: happyHour.barID) {
+                            HappyHourRow(happyHour: happyHour)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
         }
@@ -95,12 +154,43 @@ struct HomeView: View {
                 actionTitle: "Map"
             ) {}
 
-            VStack(spacing: AppSpacing.sm) {
-                ForEach(viewModel.nearbyBars) { bar in
-                    BarCard(bar: bar, style: .wide)
+            if viewModel.nearbyBars.isEmpty && !viewModel.isLoading && viewModel.errorMessage == nil {
+                ContentStateView(
+                    icon: "location",
+                    title: "Nothing nearby",
+                    message: "Bars in your area will show up here."
+                )
+            } else {
+                VStack(spacing: AppSpacing.sm) {
+                    ForEach(viewModel.nearbyBars) { bar in
+                        NavigationLink(value: bar) {
+                            BarCard(bar: bar, style: .wide)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
         }
+    }
+
+    private func errorBanner(message: String) -> some View {
+        ContentStateView(
+            icon: "wifi.exclamationmark",
+            title: "Couldn't load tonight's picks",
+            message: message,
+            actionTitle: "Try again",
+            action: {
+                Task { await viewModel.refresh() }
+            },
+            style: .card
+        )
+    }
+
+    private var loadingBadge: some View {
+        ProgressView()
+            .tint(AppColors.accent)
+            .padding(AppSpacing.sm)
+            .background(.ultraThinMaterial, in: Circle())
     }
 }
 

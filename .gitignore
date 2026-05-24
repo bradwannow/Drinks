@@ -1,0 +1,8 @@
+# Supabase credentials — copy from SupabaseSecrets.example.plist and fill in your keys
+Drinks/Config/SupabaseSecrets.plist
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
