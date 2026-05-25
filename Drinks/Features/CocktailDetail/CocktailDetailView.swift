@@ -116,18 +116,9 @@ struct CocktailDetailView: View {
 
     @ViewBuilder
     private func badgesSection(cocktail: Cocktail) -> some View {
-        if cocktail.isFeatured || cocktail.isTrending || cocktail.isSeasonal {
-            HStack(spacing: AppSpacing.xs) {
-                if cocktail.isFeatured {
-                    BadgePill(title: "Featured", icon: "sparkles")
-                }
-                if cocktail.isTrending {
-                    BadgePill(title: "Trending", icon: "flame.fill", tint: AppColors.accentSecondary)
-                }
-                if cocktail.isSeasonal {
-                    BadgePill(title: "Seasonal", icon: "leaf.fill", tint: AppColors.accentSecondary)
-                }
-            }
+        let badges = FreshnessUtility.badges(for: cocktail)
+        if !badges.isEmpty {
+            FreshnessBadgeStrip(badges: badges)
         }
     }
 

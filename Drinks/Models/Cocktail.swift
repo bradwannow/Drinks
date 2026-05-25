@@ -10,6 +10,10 @@ struct Cocktail: Identifiable, Hashable, Codable {
     let isSeasonal: Bool
     let isFeatured: Bool
     let isTrending: Bool
+    let isLimitedTime: Bool
+    let isStaffPick: Bool
+    let createdAt: Date?
+    let availableUntil: Date?
 
     init(
         id: UUID = UUID(),
@@ -20,7 +24,11 @@ struct Cocktail: Identifiable, Hashable, Codable {
         spirit: String,
         isSeasonal: Bool = false,
         isFeatured: Bool = false,
-        isTrending: Bool = false
+        isTrending: Bool = false,
+        isLimitedTime: Bool = false,
+        isStaffPick: Bool = false,
+        createdAt: Date? = nil,
+        availableUntil: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -31,6 +39,10 @@ struct Cocktail: Identifiable, Hashable, Codable {
         self.isSeasonal = isSeasonal
         self.isFeatured = isFeatured
         self.isTrending = isTrending
+        self.isLimitedTime = isLimitedTime
+        self.isStaffPick = isStaffPick
+        self.createdAt = createdAt
+        self.availableUntil = availableUntil
     }
 
     enum CodingKeys: String, CodingKey {
@@ -43,5 +55,9 @@ struct Cocktail: Identifiable, Hashable, Codable {
         case isSeasonal = "is_seasonal"
         case isFeatured = "is_featured"
         case isTrending = "is_trending"
+        case isLimitedTime = "is_limited_time"
+        case isStaffPick = "is_staff_pick"
+        case createdAt = "created_at"
+        case availableUntil = "available_until"
     }
 }

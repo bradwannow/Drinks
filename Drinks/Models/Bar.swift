@@ -11,6 +11,8 @@ struct Bar: Identifiable, Hashable, Codable {
     let longitude: Double
     let isTrending: Bool
     let isFeatured: Bool
+    let isNewlyOpened: Bool
+    let createdAt: Date?
     let referenceCoordinate: Coordinate
 
     init(
@@ -24,6 +26,8 @@ struct Bar: Identifiable, Hashable, Codable {
         longitude: Double,
         isTrending: Bool = false,
         isFeatured: Bool = false,
+        isNewlyOpened: Bool = false,
+        createdAt: Date? = nil,
         referenceCoordinate: Coordinate = .defaultReference
     ) {
         self.id = id
@@ -36,6 +40,8 @@ struct Bar: Identifiable, Hashable, Codable {
         self.longitude = longitude
         self.isTrending = isTrending
         self.isFeatured = isFeatured
+        self.isNewlyOpened = isNewlyOpened
+        self.createdAt = createdAt
         self.referenceCoordinate = referenceCoordinate
     }
 
@@ -65,6 +71,8 @@ struct Bar: Identifiable, Hashable, Codable {
         case longitude
         case isTrending = "is_trending"
         case isFeatured = "is_featured"
+        case isNewlyOpened = "is_newly_opened"
+        case createdAt = "created_at"
     }
 
     init(from decoder: Decoder) throws {
@@ -79,6 +87,8 @@ struct Bar: Identifiable, Hashable, Codable {
         longitude = try container.decode(Double.self, forKey: .longitude)
         isTrending = try container.decode(Bool.self, forKey: .isTrending)
         isFeatured = try container.decode(Bool.self, forKey: .isFeatured)
+        isNewlyOpened = try container.decodeIfPresent(Bool.self, forKey: .isNewlyOpened) ?? false
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
         referenceCoordinate = .defaultReference
     }
 
@@ -94,5 +104,8 @@ struct Bar: Identifiable, Hashable, Codable {
         try container.encode(longitude, forKey: .longitude)
         try container.encode(isTrending, forKey: .isTrending)
         try container.encode(isFeatured, forKey: .isFeatured)
+        try container.encode(isNewlyOpened, forKey: .isNewlyOpened)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
     }
 }
+

@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
     @EnvironmentObject private var saveStore: SaveStore
+    @EnvironmentObject private var notificationPreferencesStore: NotificationPreferencesStore
 
     var body: some View {
         Group {
@@ -16,13 +17,16 @@ struct RootView: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.98)))
                     .onAppear {
                         saveStore.reset()
+                        notificationPreferencesStore.reset()
                     }
 
             case .authenticated:
                 MainTabView()
                     .transition(.opacity.combined(with: .scale(scale: 1.02)))
                     .task {
-                        await saveStore.load()
+                        async let saves: Void = saveStore.load()
+                        async let prefs: Void = notificationPreferencesStore.load()
+                        _ = await (saves, prefs)
                     }
             }
         }
@@ -52,5 +56,6 @@ private struct AuthLoadingView: View {
     RootView()
         .environmentObject(AuthViewModel())
         .environmentObject(SaveStore.shared)
+        .environmentObject(NotificationPreferencesStore.shared)
         .preferredColorScheme(.dark)
 }

@@ -46,6 +46,25 @@
 		C8D9E0F1A2B3456789012347 /* DiscoveryTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012347 /* DiscoveryTile.swift */; };
 		C8D9E0F1A2B3456789012348 /* FeaturedCollectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012348 /* FeaturedCollectionCard.swift */; };
 		C8D9E0F1A2B3456789012349 /* SearchFilterBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A1B2C3456789012349 /* SearchFilterBar.swift */; };
+		E5F6A7B8C9D0456789012341 /* Activity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E0456789012341 /* Activity.swift */; };
+		E5F6A7B8C9D0456789012342 /* FreshnessUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E0456789012342 /* FreshnessUtility.swift */; };
+		E5F6A7B8C9D0456789012343 /* NotificationPreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E0456789012343 /* NotificationPreferencesStore.swift */; };
+		E5F6A7B8C9D0456789012344 /* FreshnessBadgeStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E0456789012344 /* FreshnessBadgeStrip.swift */; };
+		E5F6A7B8C9D0456789012345 /* ActivityFeedCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E0456789012345 /* ActivityFeedCard.swift */; };
+		E5F6A7B8C9D0456789012346 /* BarUpdateRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E0456789012346 /* BarUpdateRow.swift */; };
+		M1MENU001A2B3456789012341 /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU101A2B3456789012341 /* Menu.swift */; };
+		M1MENU002A2B3456789012341 /* MenuOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU102A2B3456789012341 /* MenuOCRService.swift */; };
+		M1MENU003A2B3456789012341 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU103A2B3456789012341 /* StorageService.swift */; };
+		M1MENU004A2B3456789012341 /* MenuService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU104A2B3456789012341 /* MenuService.swift */; };
+		M1MENU005A2B3456789012341 /* MenuImageCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU105A2B3456789012341 /* MenuImageCarousel.swift */; };
+		M1MENU006A2B3456789012341 /* MenuTimelineCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU106A2B3456789012341 /* MenuTimelineCard.swift */; };
+		M1MENU007A2B3456789012341 /* MenuCocktailEditRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU107A2B3456789012341 /* MenuCocktailEditRow.swift */; };
+		M1MENU008A2B3456789012341 /* MenuCocktailEntryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU108A2B3456789012341 /* MenuCocktailEntryRow.swift */; };
+		M1MENU009A2B3456789012341 /* MenuUploadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU109A2B3456789012341 /* MenuUploadViewModel.swift */; };
+		M1MENU010A2B3456789012341 /* MenuUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU110A2B3456789012341 /* MenuUploadView.swift */; };
+		M1MENU011A2B3456789012341 /* MenuDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU111A2B3456789012341 /* MenuDetailViewModel.swift */; };
+		M1MENU012A2B3456789012341 /* MenuDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU112A2B3456789012341 /* MenuDetailView.swift */; };
+		M1MENU013A2B3456789012341 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU113A2B3456789012341 /* AppRoute.swift */; };
 		A7B8C9D0E1F2345678901249 /* BarMenuCocktail.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F2345678901249 /* BarMenuCocktail.swift */; };
 		A7B8C9D0E1F234567890124A /* HapticFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F234567890124A /* HapticFeedback.swift */; };
 		A7B8C9D0E1F234567890124B /* DetailNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F234567890124B /* DetailNavigation.swift */; };
@@ -177,6 +196,25 @@
 		D8E9F0A1B2C3456789012347 /* DiscoveryTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryTile.swift; sourceTree = "<group>"; };
 		D8E9F0A1B2C3456789012348 /* FeaturedCollectionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturedCollectionCard.swift; sourceTree = "<group>"; };
 		D8E9F0A1B2C3456789012349 /* SearchFilterBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFilterBar.swift; sourceTree = "<group>"; };
+		F5A6B7C8D9E0456789012341 /* Activity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Activity.swift; sourceTree = "<group>"; };
+		F5A6B7C8D9E0456789012342 /* FreshnessUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreshnessUtility.swift; sourceTree = "<group>"; };
+		F5A6B7C8D9E0456789012343 /* NotificationPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPreferencesStore.swift; sourceTree = "<group>"; };
+		F5A6B7C8D9E0456789012344 /* FreshnessBadgeStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreshnessBadgeStrip.swift; sourceTree = "<group>"; };
+		F5A6B7C8D9E0456789012345 /* ActivityFeedCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityFeedCard.swift; sourceTree = "<group>"; };
+		F5A6B7C8D9E0456789012346 /* BarUpdateRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarUpdateRow.swift; sourceTree = "<group>"; };
+		M1MENU101A2B3456789012341 /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
+		M1MENU102A2B3456789012341 /* MenuOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuOCRService.swift; sourceTree = "<group>"; };
+		M1MENU103A2B3456789012341 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
+		M1MENU104A2B3456789012341 /* MenuService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuService.swift; sourceTree = "<group>"; };
+		M1MENU105A2B3456789012341 /* MenuImageCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuImageCarousel.swift; sourceTree = "<group>"; };
+		M1MENU106A2B3456789012341 /* MenuTimelineCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTimelineCard.swift; sourceTree = "<group>"; };
+		M1MENU107A2B3456789012341 /* MenuCocktailEditRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuCocktailEditRow.swift; sourceTree = "<group>"; };
+		M1MENU108A2B3456789012341 /* MenuCocktailEntryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuCocktailEntryRow.swift; sourceTree = "<group>"; };
+		M1MENU109A2B3456789012341 /* MenuUploadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuUploadViewModel.swift; sourceTree = "<group>"; };
+		M1MENU110A2B3456789012341 /* MenuUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuUploadView.swift; sourceTree = "<group>"; };
+		M1MENU111A2B3456789012341 /* MenuDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuDetailViewModel.swift; sourceTree = "<group>"; };
+		M1MENU112A2B3456789012341 /* MenuDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuDetailView.swift; sourceTree = "<group>"; };
+		M1MENU113A2B3456789012341 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 		24E21C692FC279D9002C4733 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -294,6 +332,13 @@
 				D8E9F0A1B2C3456789012346 /* FilterChip.swift */,
 				D8E9F0A1B2C3456789012347 /* DiscoveryTile.swift */,
 				D8E9F0A1B2C3456789012348 /* FeaturedCollectionCard.swift */,
+				F5A6B7C8D9E0456789012344 /* FreshnessBadgeStrip.swift */,
+				F5A6B7C8D9E0456789012345 /* ActivityFeedCard.swift */,
+				F5A6B7C8D9E0456789012346 /* BarUpdateRow.swift */,
+				M1MENU105A2B3456789012341 /* MenuImageCarousel.swift */,
+				M1MENU106A2B3456789012341 /* MenuTimelineCard.swift */,
+				M1MENU107A2B3456789012341 /* MenuCocktailEditRow.swift */,
+				M1MENU108A2B3456789012341 /* MenuCocktailEntryRow.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -317,7 +362,9 @@
 				F1B2C3D4E5F6478901234574 /* LocationUtility.swift */,
 				B7B8C9D0E1F234567890124A /* HapticFeedback.swift */,
 				B7B8C9D0E1F234567890124B /* DetailNavigation.swift */,
+				M1MENU113A2B3456789012341 /* AppRoute.swift */,
 				D8E9F0A1B2C3456789012344 /* HappyHourUtility.swift */,
+				F5A6B7C8D9E0456789012342 /* FreshnessUtility.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -330,6 +377,8 @@
 				DDDA4CB82E394093AEAA210F /* Saved */,
 				C8B8C9D0E1F2345678901240 /* BarDetail */,
 				C8B8C9D0E1F2345678901241 /* CocktailDetail */,
+				M1MENU201A2B3456789012341 /* MenuUpload */,
+				M1MENU202A2B3456789012341 /* MenuDetail */,
 				C7B8C9D0E1F2345678901238 /* Auth */,
 				96EB3292DA3443DF831C1660 /* Profile */,
 			);
@@ -352,6 +401,24 @@
 				B7B8C9D0E1F2345678901242 /* CocktailDetailView.swift */,
 			);
 			path = CocktailDetail;
+			sourceTree = "<group>";
+		};
+		M1MENU201A2B3456789012341 /* MenuUpload */ = {
+			isa = PBXGroup;
+			children = (
+				M1MENU109A2B3456789012341 /* MenuUploadViewModel.swift */,
+				M1MENU110A2B3456789012341 /* MenuUploadView.swift */,
+			);
+			path = MenuUpload;
+			sourceTree = "<group>";
+		};
+		M1MENU202A2B3456789012341 /* MenuDetail */ = {
+			isa = PBXGroup;
+			children = (
+				M1MENU111A2B3456789012341 /* MenuDetailViewModel.swift */,
+				M1MENU112A2B3456789012341 /* MenuDetailView.swift */,
+			);
+			path = MenuDetail;
 			sourceTree = "<group>";
 		};
 		C7B8C9D0E1F2345678901238 /* Auth */ = {
@@ -397,6 +464,8 @@
 				F1B2C3D4E5F6478901234573 /* DatabaseRecords.swift */,
 				D8E9F0A1B2C3456789012341 /* SearchFilters.swift */,
 				D8E9F0A1B2C3456789012342 /* SearchDiscovery.swift */,
+				F5A6B7C8D9E0456789012341 /* Activity.swift */,
+				M1MENU101A2B3456789012341 /* Menu.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -414,8 +483,10 @@
 			isa = PBXGroup;
 			children = (
 				8458A5C1459C43BBBD3DCE0D /* MockDataService.swift */,
+				M1MENU102A2B3456789012341 /* MenuOCRService.swift */,
 				B7B8C9D0E1F2345678901244 /* SaveStore.swift */,
 				D8E9F0A1B2C3456789012343 /* RecentSearchStore.swift */,
+				F5A6B7C8D9E0456789012343 /* NotificationPreferencesStore.swift */,
 				C2D3E4F5A6B7478901234561 /* Supabase */,
 			);
 			path = Services;
@@ -428,6 +499,8 @@
 				F1B2C3D4E5F6478901234569 /* Supabase.swift */,
 				F1B2C3D4E5F6478901234566 /* AuthService.swift */,
 				F1B2C3D4E5F6478901234567 /* DatabaseService.swift */,
+				M1MENU103A2B3456789012341 /* StorageService.swift */,
+				M1MENU104A2B3456789012341 /* MenuService.swift */,
 			);
 			path = Supabase;
 			sourceTree = "<group>";
@@ -662,6 +735,25 @@
 				C8D9E0F1A2B3456789012347 /* DiscoveryTile.swift in Sources */,
 				C8D9E0F1A2B3456789012348 /* FeaturedCollectionCard.swift in Sources */,
 				C8D9E0F1A2B3456789012349 /* SearchFilterBar.swift in Sources */,
+				E5F6A7B8C9D0456789012341 /* Activity.swift in Sources */,
+				E5F6A7B8C9D0456789012342 /* FreshnessUtility.swift in Sources */,
+				E5F6A7B8C9D0456789012343 /* NotificationPreferencesStore.swift in Sources */,
+				E5F6A7B8C9D0456789012344 /* FreshnessBadgeStrip.swift in Sources */,
+				E5F6A7B8C9D0456789012345 /* ActivityFeedCard.swift in Sources */,
+				E5F6A7B8C9D0456789012346 /* BarUpdateRow.swift in Sources */,
+				M1MENU001A2B3456789012341 /* Menu.swift in Sources */,
+				M1MENU002A2B3456789012341 /* MenuOCRService.swift in Sources */,
+				M1MENU003A2B3456789012341 /* StorageService.swift in Sources */,
+				M1MENU004A2B3456789012341 /* MenuService.swift in Sources */,
+				M1MENU005A2B3456789012341 /* MenuImageCarousel.swift in Sources */,
+				M1MENU006A2B3456789012341 /* MenuTimelineCard.swift in Sources */,
+				M1MENU007A2B3456789012341 /* MenuCocktailEditRow.swift in Sources */,
+				M1MENU008A2B3456789012341 /* MenuCocktailEntryRow.swift in Sources */,
+				M1MENU009A2B3456789012341 /* MenuUploadViewModel.swift in Sources */,
+				M1MENU010A2B3456789012341 /* MenuUploadView.swift in Sources */,
+				M1MENU011A2B3456789012341 /* MenuDetailViewModel.swift in Sources */,
+				M1MENU012A2B3456789012341 /* MenuDetailView.swift in Sources */,
+				M1MENU013A2B3456789012341 /* AppRoute.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -833,6 +925,7 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Pour needs photo access so you can upload cocktail menu images.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
@@ -871,6 +964,7 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Pour needs photo access so you can upload cocktail menu images.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;

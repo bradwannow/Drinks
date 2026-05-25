@@ -2,6 +2,11 @@ import SwiftUI
 
 struct HappyHourRow: View {
     let happyHour: HappyHour
+    var showsStatus = false
+
+    private var statusBadges: [FreshnessBadge] {
+        FreshnessUtility.happyHourBadges(for: happyHour)
+    }
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
@@ -12,12 +17,18 @@ struct HappyHourRow: View {
             .frame(width: 64, height: 64)
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                if showsStatus, !statusBadges.isEmpty {
+                    FreshnessBadgeStrip(badges: statusBadges, maxVisible: 2)
+                }
+
                 Text(happyHour.barName)
                     .headlineStyle()
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(happyHour.dealDescription)
                     .bodyStyle()
                     .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: AppSpacing.sm) {
                     Label(happyHour.timeRange, systemImage: "clock")
@@ -39,7 +50,12 @@ struct HappyHourRow: View {
                 .fill(AppColors.surface)
                 .overlay {
                     RoundedRectangle(cornerRadius: AppSpacing.cardRadius, style: .continuous)
-                        .strokeBorder(AppColors.accent.opacity(0.15), lineWidth: 1)
+                        .strokeBorder(
+                            showsStatus && statusBadges.contains(.happyHourNow)
+                                ? AppColors.accent.opacity(0.35)
+                                : AppColors.accent.opacity(0.15),
+                            lineWidth: 1
+                        )
                 }
         }
         .cardShadow()
@@ -47,7 +63,7 @@ struct HappyHourRow: View {
 }
 
 #Preview {
-    HappyHourRow(happyHour: MockDataService.happyHours[0])
+    HappyHourRow(happyHour: MockDataService.happyHours[0], showsStatus: true)
         .padding()
         .screenBackground()
         .preferredColorScheme(.dark)

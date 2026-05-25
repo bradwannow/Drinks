@@ -4,6 +4,7 @@ import SwiftUI
 struct DrinksApp: App {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var saveStore = SaveStore.shared
+    @StateObject private var notificationPreferencesStore = NotificationPreferencesStore.shared
 
     init() {
         _ = SupabaseManager.shared
@@ -20,6 +21,7 @@ struct DrinksApp: App {
             RootView()
                 .environmentObject(authViewModel)
                 .environmentObject(saveStore)
+                .environmentObject(notificationPreferencesStore)
                 .preferredColorScheme(.dark)
         }
     }

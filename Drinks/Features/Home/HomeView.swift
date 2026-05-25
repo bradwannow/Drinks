@@ -6,7 +6,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.xl) {
+                LazyVStack(alignment: .leading, spacing: AppSpacing.xl) {
                     header
                         .fadeInOnAppear()
 
@@ -19,21 +19,34 @@ struct HomeView: View {
                         HomeLoadingOverlay()
                             .fadeInOnAppear(delay: 0.05)
                     } else if viewModel.shouldShowContentSections {
-                        featuredSection
-                            .fadeInOnAppear(delay: 0.05)
+                        activityFeedSection
+                            .fadeInOnAppear(delay: 0.04)
 
-                        trendingSection
+                        featuredSection
+                            .fadeInOnAppear(delay: 0.06)
+
+                        recentlyAddedSection
+                            .fadeInOnAppear(delay: 0.08)
+
+                        trendingTonightSection
                             .fadeInOnAppear(delay: 0.1)
 
-                        happyHourSection
-                            .fadeInOnAppear(delay: 0.15)
+                        activeHappyHourSection
+                            .fadeInOnAppear(delay: 0.12)
+
+                        seasonalSection
+                            .fadeInOnAppear(delay: 0.14)
+
+                        trendingBarsSection
+                            .fadeInOnAppear(delay: 0.16)
 
                         nearbySection
-                            .fadeInOnAppear(delay: 0.2)
+                            .fadeInOnAppear(delay: 0.18)
                     }
                 }
                 .padding(.horizontal, AppSpacing.screenPadding)
                 .padding(.bottom, AppSpacing.xxl)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .refreshable {
                 await viewModel.refresh()
@@ -56,6 +69,7 @@ struct HomeView: View {
                 .displayMediumStyle()
         }
         .padding(.top, AppSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var greeting: String {
@@ -68,18 +82,64 @@ struct HomeView: View {
     }
 
     @ViewBuilder
-    private var featuredSection: some View {
-        if let cocktail = viewModel.featuredCocktail {
-            NavigationLink(value: cocktail) {
-                FeaturedCocktailCard(cocktail: cocktail)
-            }
-            .buttonStyle(.plain)
-            .overlay(alignment: .topTrailing) {
-                    if viewModel.isLoading {
-                        loadingBadge
-                            .padding(AppSpacing.md)
+    private var activityFeedSection: some View {
+        if !viewModel.activityFeed.isEmpty {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                SectionHeader(
+                    title: "Live Now",
+                    subtitle: "What's changing tonight"
+                )
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.md) {
+                        ForEach(viewModel.activityFeed) { entry in
+                            activityLink(for: entry)
+                        }
                     }
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func activityLink(for entry: ActivityFeedEntry) -> some View {
+        if let cocktail = entry.cocktail {
+            NavigationLink(value: cocktail) {
+                ActivityFeedCard(entry: entry)
+            }
+            .buttonStyle(.plain)
+        } else if let bar = entry.bar {
+            NavigationLink(value: bar) {
+                ActivityFeedCard(entry: entry)
+            }
+            .buttonStyle(.plain)
+        } else if let barID = entry.item.barID {
+            NavigationLink(value: BarRoute(id: barID)) {
+                ActivityFeedCard(entry: entry)
+            }
+            .buttonStyle(.plain)
+        } else {
+            ActivityFeedCard(entry: entry)
+        }
+    }
+
+    @ViewBuilder
+    private var featuredSection: some View {
+        if let cocktail = viewModel.featuredCocktail {
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                FreshnessBadgeStrip(badges: FreshnessUtility.badges(for: cocktail))
+
+                NavigationLink(value: cocktail) {
+                    FeaturedCocktailCard(cocktail: cocktail)
+                }
+                .buttonStyle(.plain)
+            }
+            .overlay(alignment: .topTrailing) {
+                if viewModel.isLoading {
+                    loadingBadge
+                        .padding(AppSpacing.md)
+                }
+            }
         } else if !viewModel.isLoading && viewModel.errorMessage == nil {
             ContentStateView(
                 icon: "sparkles",
@@ -90,13 +150,105 @@ struct HomeView: View {
         }
     }
 
-    private var trendingSection: some View {
+    private var recentlyAddedSection: some View {
+        cocktailCarouselSection(
+            title: "Recently Added",
+            subtitle: "Fresh pours on the scene",
+            cocktails: viewModel.recentlyAdded,
+            emptyIcon: "plus.circle",
+            emptyTitle: "Nothing new yet",
+            emptyMessage: "New cocktails will land here first."
+        )
+    }
+
+    private var trendingTonightSection: some View {
+        cocktailCarouselSection(
+            title: "Trending Tonight",
+            subtitle: "What everyone's ordering",
+            cocktails: viewModel.trendingTonight,
+            emptyIcon: "flame.fill",
+            emptyTitle: "Quiet tonight",
+            emptyMessage: "Trending pours will heat up here."
+        )
+    }
+
+    private var seasonalSection: some View {
+        cocktailCarouselSection(
+            title: "Seasonal Right Now",
+            subtitle: "Rotating menus for the moment",
+            cocktails: viewModel.seasonalNow,
+            emptyIcon: "leaf.fill",
+            emptyTitle: "No seasonal pours",
+            emptyMessage: "Seasonal menus will appear here."
+        )
+    }
+
+    private func cocktailCarouselSection(
+        title: String,
+        subtitle: String,
+        cocktails: [Cocktail],
+        emptyIcon: String,
+        emptyTitle: String,
+        emptyMessage: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            SectionHeader(title: title, subtitle: subtitle)
+
+            if cocktails.isEmpty && !viewModel.isLoading && viewModel.errorMessage == nil {
+                ContentStateView(icon: emptyIcon, title: emptyTitle, message: emptyMessage)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.md) {
+                        ForEach(cocktails) { cocktail in
+                            NavigationLink(value: cocktail) {
+                                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                                    FreshnessBadgeStrip(
+                                        badges: FreshnessUtility.badges(for: cocktail),
+                                        maxVisible: 2
+                                    )
+                                    RelatedCocktailCard(cocktail: cocktail)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var activeHappyHourSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            SectionHeader(
+                title: "Happy Hour Happening Now",
+                subtitle: "Deals live right this minute"
+            )
+
+            if viewModel.activeHappyHours.isEmpty && !viewModel.isLoading && viewModel.errorMessage == nil {
+                ContentStateView(
+                    icon: "clock",
+                    title: "No active happy hours",
+                    message: "Check back when the deals start."
+                )
+            } else {
+                VStack(spacing: AppSpacing.sm) {
+                    ForEach(viewModel.activeHappyHours) { happyHour in
+                        NavigationLink(value: BarRoute(id: happyHour.barID)) {
+                            HappyHourRow(happyHour: happyHour, showsStatus: true)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private var trendingBarsSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             SectionHeader(
                 title: "Trending Bars",
-                subtitle: "What everyone's talking about",
-                actionTitle: "See all"
-            ) {}
+                subtitle: "Hot spots across Chicago"
+            )
 
             if viewModel.trendingBars.isEmpty && !viewModel.isLoading && viewModel.errorMessage == nil {
                 ContentStateView(
@@ -109,37 +261,16 @@ struct HomeView: View {
                     HStack(spacing: AppSpacing.md) {
                         ForEach(viewModel.trendingBars) { bar in
                             NavigationLink(value: bar) {
-                                BarCard(bar: bar, style: .compact)
+                                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                                    FreshnessBadgeStrip(
+                                        badges: FreshnessUtility.badges(for: bar),
+                                        maxVisible: 2
+                                    )
+                                    BarCard(bar: bar, style: .compact)
+                                }
                             }
                             .buttonStyle(.plain)
                         }
-                    }
-                }
-            }
-        }
-    }
-
-    private var happyHourSection: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.md) {
-            SectionHeader(
-                title: "Happy Hour",
-                subtitle: "Deals happening now",
-                actionTitle: "See all"
-            ) {}
-
-            if viewModel.happyHours.isEmpty && !viewModel.isLoading && viewModel.errorMessage == nil {
-                ContentStateView(
-                    icon: "clock",
-                    title: "No happy hours",
-                    message: "Check back for deals near you."
-                )
-            } else {
-                VStack(spacing: AppSpacing.sm) {
-                    ForEach(viewModel.happyHours) { happyHour in
-                        NavigationLink(value: happyHour.barID) {
-                            HappyHourRow(happyHour: happyHour)
-                        }
-                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -150,9 +281,8 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             SectionHeader(
                 title: "Nearby",
-                subtitle: "Within walking distance",
-                actionTitle: "Map"
-            ) {}
+                subtitle: "Within walking distance"
+            )
 
             if viewModel.nearbyBars.isEmpty && !viewModel.isLoading && viewModel.errorMessage == nil {
                 ContentStateView(

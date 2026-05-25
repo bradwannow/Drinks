@@ -15,7 +15,7 @@ enum NetworkError: LocalizedError, Equatable {
         case .notConfigured:
             return "Supabase is not configured. Add your project URL and anon key to SupabaseSecrets.plist."
         case .databaseNotSetup:
-            return "Database tables haven't been created yet. Run supabase/migrations/001_schema.sql and 002_seed.sql in your Supabase SQL Editor, then pull to refresh."
+            return "Database tables haven't been created yet. Run supabase/migrations through 005_menus.sql in your Supabase SQL Editor, then pull to refresh."
         case .unauthorized:
             return "You are not signed in or your session has expired."
         case .notFound:

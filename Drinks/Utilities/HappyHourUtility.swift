@@ -30,6 +30,48 @@ enum HappyHourUtility {
         return currentMinutes >= bounds.start && currentMinutes <= bounds.end
     }
 
+    static func isStartingSoon(_ happyHour: HappyHour, withinMinutes: Int = 60, at date: Date = Date(), calendar: Calendar = .current) -> Bool {
+        guard isDayActive(happyHour.daysActive, on: date, calendar: calendar),
+              let bounds = timeBounds(from: happyHour.timeRange) else {
+            return false
+        }
+
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        guard let hour = components.hour, let minute = components.minute else { return false }
+
+        let currentMinutes = hour * 60 + minute
+        let minutesUntilStart = bounds.start - currentMinutes
+        return minutesUntilStart > 0 && minutesUntilStart <= withinMinutes
+    }
+
+    static func isEndingSoon(_ happyHour: HappyHour, withinMinutes: Int = 45, at date: Date = Date(), calendar: Calendar = .current) -> Bool {
+        guard isActiveNow(happyHour, at: date, calendar: calendar),
+              let bounds = timeBounds(from: happyHour.timeRange) else {
+            return false
+        }
+
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        guard let hour = components.hour, let minute = components.minute else { return false }
+
+        let currentMinutes = hour * 60 + minute
+        let minutesUntilEnd = bounds.end - currentMinutes
+        return minutesUntilEnd >= 0 && minutesUntilEnd <= withinMinutes
+    }
+
+    static func minutesUntilStart(_ happyHour: HappyHour, at date: Date = Date(), calendar: Calendar = .current) -> Int? {
+        guard isDayActive(happyHour.daysActive, on: date, calendar: calendar),
+              let bounds = timeBounds(from: happyHour.timeRange) else {
+            return nil
+        }
+
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        guard let hour = components.hour, let minute = components.minute else { return nil }
+
+        let currentMinutes = hour * 60 + minute
+        let delta = bounds.start - currentMinutes
+        return delta > 0 ? delta : nil
+    }
+
     private static func dayName(for index: Int) -> String {
         switch index {
         case 1: return "mon"

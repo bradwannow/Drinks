@@ -8,8 +8,14 @@ extension View {
         .navigationDestination(for: Cocktail.self) { cocktail in
             CocktailDetailView(cocktail: cocktail)
         }
-        .navigationDestination(for: UUID.self) { barID in
-            BarDetailView(barID: barID)
+        .navigationDestination(for: BarRoute.self) { route in
+            BarDetailView(barID: route.id)
+        }
+        .navigationDestination(for: MenuVersionDetail.self) { detail in
+            MenuDetailView(detail: detail)
+        }
+        .navigationDestination(for: MenuVersionRoute.self) { route in
+            MenuDetailView(menuVersionID: route.id)
         }
     }
 }

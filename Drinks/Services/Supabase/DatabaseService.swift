@@ -11,6 +11,9 @@ final class DatabaseService {
         static let profiles = "profiles"
         static let savedBars = "saved_bars"
         static let savedCocktails = "saved_cocktails"
+        static let activityFeed = "activity_feed"
+        static let barUpdates = "bar_updates"
+        static let notificationPreferences = "notification_preferences"
     }
 
     private let manager: SupabaseManager
@@ -592,5 +595,154 @@ final class DatabaseService {
             .replacingOccurrences(of: "%", with: "\\%")
             .replacingOccurrences(of: "_", with: "\\_")
         return "%\(escaped)%"
+    }
+
+    // MARK: - Activity & Freshness
+
+    func fetchActivityFeed(limit: Int = 12) async throws -> [ActivityItem] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.ActivityFeedRow] = try await client
+            .from(Table.activityFeed)
+            .select()
+            .eq("is_active", value: true)
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+
+        return rows.compactMap { $0.toActivityItem() }
+    }
+
+    func fetchBarUpdates(forBar barID: UUID, limit: Int = 10) async throws -> [BarUpdate] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.BarUpdateRow] = try await client
+            .from(Table.barUpdates)
+            .select()
+            .eq("bar_id", value: barID)
+            .eq("is_active", value: true)
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+
+        return rows.compactMap { $0.toBarUpdate() }
+    }
+
+    func fetchRecentlyAddedCocktails(limit: Int = 8) async throws -> [Cocktail] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.CocktailRow] = try await client
+            .from(Table.cocktails)
+            .select("*, bar_cocktails(bars(name))")
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+
+        return rows.compactMap { $0.toCocktail() }
+    }
+
+    func fetchTrendingTonightCocktails(limit: Int = 8) async throws -> [Cocktail] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.CocktailRow] = try await client
+            .from(Table.cocktails)
+            .select("*, bar_cocktails(bars(name))")
+            .eq("is_trending", value: true)
+            .order("created_at", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+
+        return rows.compactMap { $0.toCocktail() }
+    }
+
+    func fetchActiveHappyHours() async throws -> [HappyHour] {
+        let hours = try await fetchHappyHours()
+        return hours.filter { HappyHourUtility.isActiveNow($0) }
+    }
+
+    func fetchCocktails(ids: [UUID]) async throws -> [Cocktail] {
+        guard !ids.isEmpty else { return [] }
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.CocktailRow] = try await client
+            .from(Table.cocktails)
+            .select("*, bar_cocktails(bars(name))")
+            .in("id", values: ids)
+            .execute()
+            .value
+
+        return rows.compactMap { $0.toCocktail() }
+    }
+
+    func fetchBars(ids: [UUID]) async throws -> [Bar] {
+        guard !ids.isEmpty else { return [] }
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.BarRow] = try await client
+            .from(Table.bars)
+            .select()
+            .in("id", values: ids)
+            .execute()
+            .value
+
+        return rows.map { $0.toBar(relativeTo: referenceCoordinate) }
+    }
+
+    func fetchHappyHoursStartingSoon(withinMinutes: Int = 60) async throws -> [HappyHour] {
+        let hours = try await fetchHappyHours()
+        return hours.filter { HappyHourUtility.isStartingSoon($0, withinMinutes: withinMinutes) }
+    }
+
+    func fetchNotificationPreferences() async throws -> NotificationPreferences {
+        let client = try manager.requireClient()
+        guard let userID = try await auth.currentSession()?.user.id else {
+            throw NetworkError.unauthorized
+        }
+
+        let row: DatabaseRecords.NotificationPreferencesRow = try await client
+            .from(Table.notificationPreferences)
+            .select()
+            .eq("user_id", value: userID)
+            .single()
+            .execute()
+            .value
+
+        return row.toPreferences()
+    }
+
+    func upsertNotificationPreferences(_ preferences: NotificationPreferences) async throws -> NotificationPreferences {
+        let client = try manager.requireClient()
+        guard let userID = try await auth.currentSession()?.user.id else {
+            throw NetworkError.unauthorized
+        }
+
+        let payload = NotificationPreferencesUpsert(
+            userID: userID,
+            savedBarCocktails: preferences.savedBarCocktails,
+            happyHourReminders: preferences.happyHourReminders,
+            seasonalLaunches: preferences.seasonalLaunches
+        )
+
+        let row: DatabaseRecords.NotificationPreferencesRow = try await client
+            .from(Table.notificationPreferences)
+            .upsert(payload, onConflict: "user_id")
+            .select()
+            .single()
+            .execute()
+            .value
+
+        return row.toPreferences()
+    }
+}
+
+private struct NotificationPreferencesUpsert: Encodable {
+    let userID: UUID
+    let savedBarCocktails: Bool
+    let happyHourReminders: Bool
+    let seasonalLaunches: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case userID = "user_id"
+        case savedBarCocktails = "saved_bar_cocktails"
+        case happyHourReminders = "happy_hour_reminders"
+        case seasonalLaunches = "seasonal_launches"
     }
 }
