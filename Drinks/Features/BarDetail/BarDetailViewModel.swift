@@ -14,6 +14,7 @@ struct BarDetailContent: Equatable {
             && lhs.updates == rhs.updates
             && lhs.menuArchive.currentMenu?.id == rhs.menuArchive.currentMenu?.id
             && lhs.menuArchive.previousMenus.map(\.id) == rhs.menuArchive.previousMenus.map(\.id)
+            && lhs.menuArchive.menuComparison == rhs.menuArchive.menuComparison
     }
 }
 
@@ -89,7 +90,8 @@ final class BarDetailViewModel: ObservableObject {
                 currentMenu: nil,
                 previousMenus: [],
                 recentlyAddedCocktails: [],
-                seasonalRotations: []
+                seasonalRotations: [],
+                menuComparison: nil
             )
         }
     }

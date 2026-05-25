@@ -40,12 +40,19 @@ struct MenuTimelineCard: View {
                         }
                     }
 
-                    Text(version.displaySubtitle)
-                        .captionStyle()
+                    FreshnessBadgeStrip(badges: version.freshnessBadges(), maxVisible: 2)
+
+                    Text(version.lastUpdatedLabel)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AppColors.accentMuted)
+                        .lineLimit(2)
 
                     HStack(spacing: AppSpacing.md) {
                         Label("\(version.imageCount)", systemImage: "photo.on.rectangle")
                         Label("\(version.cocktailCount)", systemImage: "wineglass")
+                        if version.confirmationCount > 0 {
+                            Label("\(version.confirmationCount)", systemImage: "checkmark.seal")
+                        }
                     }
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(AppColors.textTertiary)
@@ -82,7 +89,10 @@ struct MenuTimelineCard: View {
             versionNumber: 3,
             imageCount: 2,
             cocktailCount: 8,
-            coverImageURL: MockDataService.featuredCocktail.imageURL
+            coverImageURL: MockDataService.featuredCocktail.imageURL,
+            confirmationCount: 2,
+            confidenceScore: 0.59,
+            isOutdated: false
         )
     )
     .padding()

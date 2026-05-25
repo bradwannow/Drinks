@@ -1,8 +1,54 @@
 import Foundation
 
 enum FreshnessUtility {
-    private static let newThisWeekInterval: TimeInterval = 7 * 24 * 60 * 60
-    private static let tonightOnlyLeadInterval: TimeInterval = 24 * 60 * 60
+    private static let tonightInterval: TimeInterval = 24 * 60 * 60
+    private static let weekInterval: TimeInterval = 7 * 24 * 60 * 60
+    private static let staleInterval: TimeInterval = 30 * 24 * 60 * 60
+
+    static func menuFreshnessLevel(uploadedAt: Date, at date: Date = Date()) -> MenuFreshnessLevel {
+        let age = date.timeIntervalSince(uploadedAt)
+        if age <= tonightInterval { return .updatedTonight }
+        if age <= weekInterval { return .updatedThisWeek }
+        if age <= staleInterval { return .current }
+        return .stale
+    }
+
+    static func badges(for menu: MenuVersion, at date: Date = Date()) -> [FreshnessBadge] {
+        var badges: [FreshnessBadge] = []
+
+        if menu.isOutdated {
+            badges.append(.staleMenu)
+        } else {
+            switch menu.freshnessLevel(at: date) {
+            case .updatedTonight: badges.append(.updatedTonight)
+            case .updatedThisWeek: badges.append(.updatedThisWeek)
+            case .stale: badges.append(.staleMenu)
+            default: break
+            }
+        }
+
+        if menu.isCommunityVerified { badges.append(.communityVerified) }
+        if menu.isSeasonal { badges.append(.seasonal) }
+
+        return deduplicatedPriority(badges)
+    }
+
+    static func menuLastUpdatedLabel(for uploadedAt: Date, at date: Date = Date()) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        let relative = formatter.localizedString(for: uploadedAt, relativeTo: date)
+
+        switch menuFreshnessLevel(uploadedAt: uploadedAt, at: date) {
+        case .updatedTonight:
+            return "Updated tonight · \(relative)"
+        case .updatedThisWeek:
+            return "Updated this week · \(relative)"
+        case .stale, .outdated:
+            return "Last updated · \(relative)"
+        case .current:
+            return "Last updated · \(relative)"
+        }
+    }
 
     static func badges(for cocktail: Cocktail, at date: Date = Date()) -> [FreshnessBadge] {
         var badges: [FreshnessBadge] = []

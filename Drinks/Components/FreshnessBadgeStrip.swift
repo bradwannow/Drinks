@@ -29,7 +29,11 @@ struct FreshnessBadgeView: View {
         switch badge {
         case .endingSoon, .tonightOnly, .startingSoon:
             return AppColors.accentSecondary
-        case .happyHourNow, .trending:
+        case .staleMenu:
+            return AppColors.accentSecondary
+        case .happyHourNow, .trending, .updatedTonight:
+            return AppColors.accent
+        case .communityVerified:
             return AppColors.accent
         default:
             return AppColors.accentMuted
@@ -49,7 +53,7 @@ struct FreshnessBadgeView: View {
 private extension FreshnessBadge {
     var isGlow: Bool {
         switch self {
-        case .endingSoon, .tonightOnly, .startingSoon, .happyHourNow, .newThisWeek:
+        case .endingSoon, .tonightOnly, .startingSoon, .happyHourNow, .newThisWeek, .updatedTonight, .updatedThisWeek:
             return true
         default:
             return false

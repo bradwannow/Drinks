@@ -4,6 +4,9 @@ import Foundation
 final class HomeViewModel: ObservableObject {
     @Published private(set) var featuredCocktail: Cocktail?
     @Published private(set) var activityFeed: [ActivityFeedEntry] = []
+    @Published private(set) var menusUpdatedTonight: [MenuDiscoveryItem] = []
+    @Published private(set) var recentlyUpdatedMenus: [MenuDiscoveryItem] = []
+    @Published private(set) var newSeasonalMenus: [MenuDiscoveryItem] = []
     @Published private(set) var recentlyAdded: [Cocktail] = []
     @Published private(set) var trendingTonight: [Cocktail] = []
     @Published private(set) var activeHappyHours: [HappyHour] = []
@@ -14,9 +17,11 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var errorMessage: String?
 
     private let database: DatabaseService
+    private let menuService: MenuService
 
-    init(database: DatabaseService = .shared) {
+    init(database: DatabaseService = .shared, menuService: MenuService = .shared) {
         self.database = database
+        self.menuService = menuService
     }
 
     func load() async {
@@ -36,6 +41,9 @@ final class HomeViewModel: ObservableObject {
             async let activeHappyHoursTask = database.fetchActiveHappyHours()
             async let seasonalTask = database.fetchSeasonalCocktails()
             async let nearbyBarsTask = database.fetchNearbyBars()
+            async let menusTonightTask = fetchMenusSafely { try await menuService.fetchMenusUpdatedTonight() }
+            async let recentMenusTask = fetchMenusSafely { try await menuService.fetchRecentlyUpdatedMenus() }
+            async let seasonalMenusTask = fetchMenusSafely { try await menuService.fetchNewSeasonalMenus() }
 
             let (
                 activityItems,
@@ -45,7 +53,10 @@ final class HomeViewModel: ObservableObject {
                 trending,
                 activeHours,
                 seasonal,
-                nearby
+                nearby,
+                tonightMenus,
+                updatedMenus,
+                seasonalMenus
             ) = try await (
                 activityTask,
                 featuredBarsTask,
@@ -54,7 +65,10 @@ final class HomeViewModel: ObservableObject {
                 trendingTonightTask,
                 activeHappyHoursTask,
                 seasonalTask,
-                nearbyBarsTask
+                nearbyBarsTask,
+                menusTonightTask,
+                recentMenusTask,
+                seasonalMenusTask
             )
 
             trendingBars = bars
@@ -64,6 +78,9 @@ final class HomeViewModel: ObservableObject {
             activeHappyHours = activeHours
             seasonalNow = seasonal
             nearbyBars = nearby
+            menusUpdatedTonight = tonightMenus
+            recentlyUpdatedMenus = updatedMenus
+            newSeasonalMenus = seasonalMenus
             activityFeed = try await resolveActivityFeed(activityItems)
         } catch {
             errorMessage = NetworkError.map(error).errorDescription
@@ -75,6 +92,9 @@ final class HomeViewModel: ObservableObject {
     var hasLoadedContent: Bool {
         featuredCocktail != nil
             || !activityFeed.isEmpty
+            || !menusUpdatedTonight.isEmpty
+            || !recentlyUpdatedMenus.isEmpty
+            || !newSeasonalMenus.isEmpty
             || !recentlyAdded.isEmpty
             || !trendingTonight.isEmpty
             || !activeHappyHours.isEmpty
@@ -104,6 +124,14 @@ final class HomeViewModel: ObservableObject {
                 cocktail: item.cocktailID.flatMap { cocktailMap[$0] },
                 bar: item.barID.flatMap { barMap[$0] }
             )
+        }
+    }
+
+    private func fetchMenusSafely(_ fetch: () async throws -> [MenuDiscoveryItem]) async -> [MenuDiscoveryItem] {
+        do {
+            return try await fetch()
+        } catch {
+            return []
         }
     }
 }

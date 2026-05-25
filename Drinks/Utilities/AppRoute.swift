@@ -6,4 +6,5 @@ struct BarRoute: Hashable {
 
 struct MenuVersionRoute: Hashable {
     let id: UUID
+    var previousVersionID: UUID?
 }

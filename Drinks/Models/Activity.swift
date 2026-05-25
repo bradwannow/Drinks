@@ -109,6 +109,10 @@ enum FreshnessBadge: Hashable, Identifiable {
     case endingSoon
     case startingSoon
     case newlyOpened
+    case updatedTonight
+    case updatedThisWeek
+    case staleMenu
+    case communityVerified
 
     var id: String {
         switch self {
@@ -123,6 +127,10 @@ enum FreshnessBadge: Hashable, Identifiable {
         case .endingSoon: return "endingSoon"
         case .startingSoon: return "startingSoon"
         case .newlyOpened: return "newlyOpened"
+        case .updatedTonight: return "updatedTonight"
+        case .updatedThisWeek: return "updatedThisWeek"
+        case .staleMenu: return "staleMenu"
+        case .communityVerified: return "communityVerified"
         }
     }
 
@@ -139,6 +147,10 @@ enum FreshnessBadge: Hashable, Identifiable {
         case .endingSoon: return "Ending Soon"
         case .startingSoon: return "Starting Soon"
         case .newlyOpened: return "Just Opened"
+        case .updatedTonight: return "Updated Tonight"
+        case .updatedThisWeek: return "Updated This Week"
+        case .staleMenu: return "May Be Outdated"
+        case .communityVerified: return "Verified"
         }
     }
 
@@ -155,6 +167,10 @@ enum FreshnessBadge: Hashable, Identifiable {
         case .endingSoon: return "clock.badge.exclamationmark.fill"
         case .startingSoon: return "bell.fill"
         case .newlyOpened: return "building.2.fill"
+        case .updatedTonight: return "moon.stars.fill"
+        case .updatedThisWeek: return "calendar.badge.clock"
+        case .staleMenu: return "exclamationmark.triangle.fill"
+        case .communityVerified: return "checkmark.seal.fill"
         }
     }
 

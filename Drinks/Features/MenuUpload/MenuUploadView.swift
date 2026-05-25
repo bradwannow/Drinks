@@ -23,6 +23,8 @@ struct MenuUploadView: View {
                         detailsStep
                     case .review:
                         reviewStep
+                    case .preview:
+                        previewStep
                     }
                 }
                 .padding(.horizontal, AppSpacing.screenPadding)
@@ -50,12 +52,20 @@ struct MenuUploadView: View {
     }
 
     private var stepIndicator: some View {
-        HStack(spacing: AppSpacing.sm) {
-            ForEach(MenuUploadStep.allCases, id: \.self) { step in
-                Capsule()
-                    .fill(step.rawValue <= viewModel.step.rawValue ? AppColors.accent : AppColors.surfaceHighlight)
-                    .frame(height: 3)
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            HStack(spacing: AppSpacing.sm) {
+                ForEach(MenuUploadStep.allCases, id: \.self) { step in
+                    Capsule()
+                        .fill(step.rawValue <= viewModel.step.rawValue ? AppColors.accent : AppColors.surfaceHighlight)
+                        .frame(height: 3)
+                }
             }
+
+            Text(viewModel.step.title)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(AppColors.accentMuted)
+                .textCase(.uppercase)
+                .tracking(0.8)
         }
     }
 
@@ -64,7 +74,7 @@ struct MenuUploadView: View {
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Menu Photos")
                     .displayMediumStyle()
-                Text("Photograph the full cocktail menu — multiple pages welcome. We'll extract drink names automatically.")
+                Text("Photograph the full cocktail menu — drag to reorder pages after selecting.")
                     .bodyStyle()
             }
 
@@ -89,19 +99,16 @@ struct MenuUploadView: View {
                     .padding(.vertical, AppSpacing.lg)
                 }
             }
+            .onChange(of: viewModel.selectedItems) { _, _ in
+                Task { await viewModel.loadSelectedPhotos() }
+            }
 
-            if !viewModel.previewImages.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: AppSpacing.sm) {
-                        ForEach(Array(viewModel.previewImages.enumerated()), id: \.offset) { _, image in
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 88, height: 120)
-                                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.sm, style: .continuous))
-                        }
-                    }
-                }
+            if !viewModel.draftImages.isEmpty {
+                MenuImageReorderStrip(
+                    images: $viewModel.draftImages,
+                    onMove: viewModel.moveImage,
+                    onRemove: viewModel.removeImage
+                )
             }
         }
         .fadeInOnAppear(delay: 0.05)
@@ -114,6 +121,17 @@ struct MenuUploadView: View {
                     .displayMediumStyle()
                 Text("Help others know when this menu was live.")
                     .bodyStyle()
+            }
+
+            if viewModel.isProcessingOCR {
+                PourCard {
+                    HStack(spacing: AppSpacing.sm) {
+                        ProgressView().tint(AppColors.accent)
+                        Text("Reading menu text...")
+                            .captionStyle()
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
 
             PourCard {
@@ -172,38 +190,119 @@ struct MenuUploadView: View {
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Review Cocktails")
                     .displayMediumStyle()
-                Text("OCR isn't perfect — edit names, fix typos, or remove items that aren't drinks.")
-                    .bodyStyle()
+                if viewModel.lowConfidenceCount > 0 {
+                    Text("\(viewModel.lowConfidenceCount) items need verification — shown first.")
+                        .bodyStyle()
+                } else {
+                    Text("Quick-edit names and prices before publishing.")
+                        .bodyStyle()
+                }
             }
 
-            if viewModel.isProcessingOCR {
-                HStack(spacing: AppSpacing.sm) {
-                    ProgressView().tint(AppColors.accent)
-                    Text("Reading menu text...")
-                        .captionStyle()
-                }
-            } else if viewModel.cocktails.isEmpty {
+            if viewModel.cocktails.isEmpty {
                 ContentStateView(
                     icon: "text.viewfinder",
                     title: "No cocktails detected",
-                    message: "You can add drinks manually or submit photos-only for now."
+                    message: "Add drinks manually or continue with photos only."
                 )
             } else {
-                VStack(spacing: AppSpacing.sm) {
+                List {
                     ForEach($viewModel.cocktails) { $cocktail in
                         MenuCocktailEditRow(cocktail: $cocktail) {
                             viewModel.removeCocktail(id: cocktail.id)
                         }
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     }
+                    .onMove(perform: viewModel.moveCocktail)
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .frame(minHeight: CGFloat(viewModel.cocktails.count) * 130)
+            }
+
+            HStack(spacing: AppSpacing.md) {
+                Button(action: { viewModel.addCocktail() }) {
+                    Label("Add drink", systemImage: "plus.circle.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(AppColors.accent)
+                }
+                .buttonStyle(.plain)
+
+                EditButton()
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+        .fadeInOnAppear(delay: 0.05)
+    }
+
+    private var previewStep: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text("Preview Before Publish")
+                    .displayMediumStyle()
+                Text("This is how your menu will appear in the archive.")
+                    .bodyStyle()
+            }
+
+            PourCard(padding: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    if let firstImage = viewModel.previewImages.first {
+                        Image(uiImage: firstImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 200)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
+                    }
+
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        HStack(spacing: AppSpacing.xs) {
+                            if viewModel.isCurrent {
+                                BadgePill(title: "Current Menu", icon: "checkmark.seal.fill")
+                            }
+                            if !viewModel.seasonLabel.isEmpty {
+                                BadgePill(title: viewModel.seasonLabel, icon: "leaf.fill")
+                            }
+                        }
+
+                        Text(viewModel.bar.name)
+                            .headlineStyle()
+
+                        HStack(spacing: AppSpacing.md) {
+                            Label("\(viewModel.draftImages.count) photos", systemImage: "photo.on.rectangle")
+                            Label("\(viewModel.cocktails.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.count) drinks", systemImage: "wineglass")
+                        }
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(AppColors.textTertiary)
+                    }
+                    .padding(AppSpacing.md)
                 }
             }
 
-            Button(action: { viewModel.addCocktail() }) {
-                Label("Add cocktail manually", systemImage: "plus.circle.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(AppColors.accent)
+            if !viewModel.cocktails.filter({ !$0.name.isEmpty }).isEmpty {
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    Text("Extracted cocktails")
+                        .labelStyle()
+
+                    ForEach(viewModel.cocktails.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.prefix(8)) { cocktail in
+                        HStack {
+                            Text(cocktail.name)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(AppColors.textPrimary)
+                            Spacer()
+                            if let price = cocktail.priceText {
+                                Text(price)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(AppColors.accent)
+                            }
+                        }
+                        .padding(.vertical, AppSpacing.xxs)
+                    }
+                }
             }
-            .buttonStyle(.plain)
 
             if let error = viewModel.uploadError {
                 Text(error.errorDescription ?? "Upload failed")
@@ -217,7 +316,7 @@ struct MenuUploadView: View {
     @ViewBuilder
     private var bottomBar: some View {
         VStack(spacing: AppSpacing.sm) {
-            if viewModel.step == .review {
+            if viewModel.step == .preview {
                 Button {
                     Task { await viewModel.submit() }
                 } label: {
@@ -242,10 +341,10 @@ struct MenuUploadView: View {
                     Task { await viewModel.advanceStep() }
                 } label: {
                     Group {
-                        if viewModel.isProcessingOCR {
+                        if viewModel.isProcessingOCR && viewModel.step == .photos {
                             ProgressView().tint(AppColors.background)
                         } else {
-                            Text("Continue")
+                            Text(viewModel.step == .review ? "Preview" : "Continue")
                                 .font(.system(size: 16, weight: .semibold))
                         }
                     }
@@ -255,8 +354,8 @@ struct MenuUploadView: View {
                     .foregroundStyle(AppColors.background)
                     .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardRadius, style: .continuous))
                 }
-                .disabled(viewModel.step == .photos && viewModel.selectedItems.isEmpty)
-                .opacity(viewModel.step == .photos && viewModel.selectedItems.isEmpty ? 0.5 : 1)
+                .disabled(viewModel.step == .photos && viewModel.draftImages.isEmpty)
+                .opacity(viewModel.step == .photos && viewModel.draftImages.isEmpty ? 0.5 : 1)
             }
 
             if viewModel.step != .photos {

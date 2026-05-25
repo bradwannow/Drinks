@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum MenuOCRStatus: String, Codable, Hashable {
     case pending
@@ -6,6 +7,23 @@ enum MenuOCRStatus: String, Codable, Hashable {
     case completed
     case failed
     case skipped
+}
+
+enum MenuFreshnessLevel: Hashable {
+    case updatedTonight
+    case updatedThisWeek
+    case current
+    case stale
+    case outdated
+
+    var badge: FreshnessBadge? {
+        switch self {
+        case .updatedTonight: return .updatedTonight
+        case .updatedThisWeek: return .updatedThisWeek
+        case .stale, .outdated: return .staleMenu
+        case .current: return nil
+        }
+    }
 }
 
 struct MenuVersion: Identifiable, Hashable {
@@ -25,6 +43,9 @@ struct MenuVersion: Identifiable, Hashable {
     let imageCount: Int
     let cocktailCount: Int
     let coverImageURL: URL?
+    let confirmationCount: Int
+    let confidenceScore: Float
+    let isOutdated: Bool
 
     var displayTitle: String {
         if let seasonLabel, !seasonLabel.isEmpty {
@@ -48,6 +69,86 @@ struct MenuVersion: Identifiable, Hashable {
 
     var isSeasonal: Bool {
         seasonLabel != nil || seasonMonth != nil
+    }
+
+    func freshnessLevel(at date: Date = Date()) -> MenuFreshnessLevel {
+        if isOutdated { return .outdated }
+        return FreshnessUtility.menuFreshnessLevel(uploadedAt: uploadedAt, at: date)
+    }
+
+    func freshnessBadges(at date: Date = Date()) -> [FreshnessBadge] {
+        FreshnessUtility.badges(for: self, at: date)
+    }
+
+    var lastUpdatedLabel: String {
+        FreshnessUtility.menuLastUpdatedLabel(for: uploadedAt)
+    }
+
+    var confidenceLabel: String {
+        switch confidenceScore {
+        case 0.7...: return "High confidence"
+        case 0.4..<0.7: return "Moderate confidence"
+        default: return confirmationCount > 0 ? "Building trust" : "Awaiting confirmation"
+        }
+    }
+
+    var isCommunityVerified: Bool {
+        confidenceScore >= 0.5 && confirmationCount >= 2
+    }
+}
+
+struct MenuViewerState: Hashable {
+    let hasConfirmed: Bool
+    let hasReportedOutdated: Bool
+
+    static let anonymous = MenuViewerState(hasConfirmed: false, hasReportedOutdated: false)
+}
+
+struct MenuDiscoveryItem: Identifiable, Hashable {
+    let version: MenuVersion
+    let bar: Bar
+
+    var id: UUID { version.id }
+}
+
+enum MenuCocktailChangeKind: Hashable {
+    case added
+    case removed
+    case seasonalReturn
+}
+
+struct MenuCocktailChange: Identifiable, Hashable {
+    let name: String
+    let kind: MenuCocktailChangeKind
+
+    var id: String { "\(kind)-\(name)" }
+}
+
+struct MenuComparison: Hashable {
+    let added: [String]
+    let removed: [String]
+    let seasonalReturns: [String]
+
+    var hasChanges: Bool {
+        !added.isEmpty || !removed.isEmpty || !seasonalReturns.isEmpty
+    }
+
+    var allChanges: [MenuCocktailChange] {
+        added.map { MenuCocktailChange(name: $0, kind: .added) }
+            + removed.map { MenuCocktailChange(name: $0, kind: .removed) }
+            + seasonalReturns.map { MenuCocktailChange(name: $0, kind: .seasonalReturn) }
+    }
+}
+
+struct DraftMenuImage: Identifiable {
+    let id: UUID
+    let image: UIImage
+    let data: Data
+
+    init(id: UUID = UUID(), image: UIImage, data: Data) {
+        self.id = id
+        self.image = image
+        self.data = data
     }
 }
 
@@ -82,8 +183,24 @@ struct MenuVersionDetail: Identifiable, Hashable {
     let version: MenuVersion
     let images: [MenuImage]
     let cocktails: [MenuCocktailEntry]
+    var comparison: MenuComparison?
+    var viewerState: MenuViewerState
 
     var id: UUID { version.id }
+
+    init(
+        version: MenuVersion,
+        images: [MenuImage],
+        cocktails: [MenuCocktailEntry],
+        comparison: MenuComparison? = nil,
+        viewerState: MenuViewerState = .anonymous
+    ) {
+        self.version = version
+        self.images = images
+        self.cocktails = cocktails
+        self.comparison = comparison
+        self.viewerState = viewerState
+    }
 }
 
 struct BarMenuArchive: Hashable {
@@ -91,6 +208,7 @@ struct BarMenuArchive: Hashable {
     let previousMenus: [MenuVersion]
     let recentlyAddedCocktails: [MenuCocktailEntry]
     let seasonalRotations: [MenuVersion]
+    let menuComparison: MenuComparison?
 }
 
 struct DraftMenuCocktail: Identifiable, Hashable {

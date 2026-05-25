@@ -22,6 +22,15 @@ struct HomeView: View {
                         activityFeedSection
                             .fadeInOnAppear(delay: 0.04)
 
+                        menusUpdatedTonightSection
+                            .fadeInOnAppear(delay: 0.045)
+
+                        recentlyUpdatedMenusSection
+                            .fadeInOnAppear(delay: 0.047)
+
+                        newSeasonalMenusSection
+                            .fadeInOnAppear(delay: 0.049)
+
                         featuredSection
                             .fadeInOnAppear(delay: 0.06)
 
@@ -94,6 +103,53 @@ struct HomeView: View {
                     HStack(spacing: AppSpacing.md) {
                         ForEach(viewModel.activityFeed) { entry in
                             activityLink(for: entry)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var menusUpdatedTonightSection: some View {
+        menuDiscoverySection(
+            title: "Menus Updated Tonight",
+            subtitle: "Fresh captures from the floor",
+            items: viewModel.menusUpdatedTonight
+        )
+    }
+
+    @ViewBuilder
+    private var recentlyUpdatedMenusSection: some View {
+        menuDiscoverySection(
+            title: "Recently Updated Menus",
+            subtitle: "Living cocktail programs",
+            items: viewModel.recentlyUpdatedMenus
+        )
+    }
+
+    @ViewBuilder
+    private var newSeasonalMenusSection: some View {
+        menuDiscoverySection(
+            title: "New Seasonal Menus",
+            subtitle: "Rotations worth exploring",
+            items: viewModel.newSeasonalMenus
+        )
+    }
+
+    @ViewBuilder
+    private func menuDiscoverySection(title: String, subtitle: String, items: [MenuDiscoveryItem]) -> some View {
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                SectionHeader(title: title, subtitle: subtitle)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.md) {
+                        ForEach(items) { item in
+                            NavigationLink(value: MenuVersionRoute(id: item.version.id)) {
+                                MenuDiscoveryCard(item: item)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }

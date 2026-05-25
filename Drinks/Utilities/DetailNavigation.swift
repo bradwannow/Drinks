@@ -15,7 +15,7 @@ extension View {
             MenuDetailView(detail: detail)
         }
         .navigationDestination(for: MenuVersionRoute.self) { route in
-            MenuDetailView(menuVersionID: route.id)
+            MenuDetailView(menuVersionID: route.id, previousVersionID: route.previousVersionID)
         }
     }
 }

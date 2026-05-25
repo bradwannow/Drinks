@@ -412,6 +412,9 @@ enum DatabaseRecords {
         let ocrStatus: String
         let uploadedAt: Date
         let createdAt: Date
+        let confirmationCount: Int
+        let confidenceScore: Float
+        let isOutdated: Bool
         let menuImages: [MenuImageSummaryRow]?
         let menuCocktails: [MenuCocktailIDRow]?
         let profiles: ContributorJoin?
@@ -428,9 +431,33 @@ enum DatabaseRecords {
             case ocrStatus = "ocr_status"
             case uploadedAt = "uploaded_at"
             case createdAt = "created_at"
+            case confirmationCount = "confirmation_count"
+            case confidenceScore = "confidence_score"
+            case isOutdated = "is_outdated"
             case menuImages = "menu_images"
             case menuCocktails = "menu_cocktails"
             case profiles
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(UUID.self, forKey: .id)
+            menuID = try container.decode(UUID.self, forKey: .menuID)
+            barID = try container.decode(UUID.self, forKey: .barID)
+            contributorID = try container.decodeIfPresent(UUID.self, forKey: .contributorID)
+            seasonLabel = try container.decodeIfPresent(String.self, forKey: .seasonLabel)
+            seasonMonth = try container.decodeIfPresent(Int.self, forKey: .seasonMonth)
+            isCurrent = try container.decode(Bool.self, forKey: .isCurrent)
+            notes = try container.decodeIfPresent(String.self, forKey: .notes)
+            ocrStatus = try container.decode(String.self, forKey: .ocrStatus)
+            uploadedAt = try container.decode(Date.self, forKey: .uploadedAt)
+            createdAt = try container.decode(Date.self, forKey: .createdAt)
+            confirmationCount = try container.decodeIfPresent(Int.self, forKey: .confirmationCount) ?? 0
+            confidenceScore = try container.decodeIfPresent(Float.self, forKey: .confidenceScore) ?? 0
+            isOutdated = try container.decodeIfPresent(Bool.self, forKey: .isOutdated) ?? false
+            menuImages = try container.decodeIfPresent([MenuImageSummaryRow].self, forKey: .menuImages)
+            menuCocktails = try container.decodeIfPresent([MenuCocktailIDRow].self, forKey: .menuCocktails)
+            profiles = try container.decodeIfPresent(ContributorJoin.self, forKey: .profiles)
         }
 
         struct MenuImageSummaryRow: Decodable {
@@ -483,7 +510,10 @@ enum DatabaseRecords {
                 versionNumber: versionNumber,
                 imageCount: menuImages?.count ?? 0,
                 cocktailCount: menuCocktails?.count ?? 0,
-                coverImageURL: coverURL
+                coverImageURL: coverURL,
+                confirmationCount: confirmationCount,
+                confidenceScore: confidenceScore,
+                isOutdated: isOutdated
             )
         }
     }
@@ -500,6 +530,9 @@ enum DatabaseRecords {
         let ocrStatus: String
         let uploadedAt: Date
         let createdAt: Date
+        let confirmationCount: Int
+        let confidenceScore: Float
+        let isOutdated: Bool
         let menuImages: [MenuImageRow]?
         let menuCocktails: [MenuCocktailRow]?
         let profiles: MenuVersionRow.ContributorJoin?
@@ -516,9 +549,33 @@ enum DatabaseRecords {
             case ocrStatus = "ocr_status"
             case uploadedAt = "uploaded_at"
             case createdAt = "created_at"
+            case confirmationCount = "confirmation_count"
+            case confidenceScore = "confidence_score"
+            case isOutdated = "is_outdated"
             case menuImages = "menu_images"
             case menuCocktails = "menu_cocktails"
             case profiles
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(UUID.self, forKey: .id)
+            menuID = try container.decode(UUID.self, forKey: .menuID)
+            barID = try container.decode(UUID.self, forKey: .barID)
+            contributorID = try container.decodeIfPresent(UUID.self, forKey: .contributorID)
+            seasonLabel = try container.decodeIfPresent(String.self, forKey: .seasonLabel)
+            seasonMonth = try container.decodeIfPresent(Int.self, forKey: .seasonMonth)
+            isCurrent = try container.decode(Bool.self, forKey: .isCurrent)
+            notes = try container.decodeIfPresent(String.self, forKey: .notes)
+            ocrStatus = try container.decode(String.self, forKey: .ocrStatus)
+            uploadedAt = try container.decode(Date.self, forKey: .uploadedAt)
+            createdAt = try container.decode(Date.self, forKey: .createdAt)
+            confirmationCount = try container.decodeIfPresent(Int.self, forKey: .confirmationCount) ?? 0
+            confidenceScore = try container.decodeIfPresent(Float.self, forKey: .confidenceScore) ?? 0
+            isOutdated = try container.decodeIfPresent(Bool.self, forKey: .isOutdated) ?? false
+            menuImages = try container.decodeIfPresent([MenuImageRow].self, forKey: .menuImages)
+            menuCocktails = try container.decodeIfPresent([MenuCocktailRow].self, forKey: .menuCocktails)
+            profiles = try container.decodeIfPresent(MenuVersionRow.ContributorJoin.self, forKey: .profiles)
         }
 
         func toMenuVersionDetail(storage: StorageService) throws -> MenuVersionDetail {
@@ -544,10 +601,140 @@ enum DatabaseRecords {
                 versionNumber: 1,
                 imageCount: images.count,
                 cocktailCount: cocktails.count,
-                coverImageURL: images.first?.imageURL
+                coverImageURL: images.first?.imageURL,
+                confirmationCount: confirmationCount,
+                confidenceScore: confidenceScore,
+                isOutdated: isOutdated
             )
 
             return MenuVersionDetail(version: version, images: images, cocktails: cocktails)
+        }
+    }
+
+    struct MenuDiscoveryRow: Decodable {
+        let id: UUID
+        let menuID: UUID
+        let barID: UUID
+        let contributorID: UUID?
+        let seasonLabel: String?
+        let seasonMonth: Int?
+        let isCurrent: Bool
+        let notes: String?
+        let ocrStatus: String
+        let uploadedAt: Date
+        let createdAt: Date
+        let confirmationCount: Int
+        let confidenceScore: Float
+        let isOutdated: Bool
+        let menuImages: [MenuVersionRow.MenuImageSummaryRow]?
+        let menuCocktails: [MenuVersionRow.MenuCocktailIDRow]?
+        let profiles: MenuVersionRow.ContributorJoin?
+        let bars: BarRow?
+
+        enum CodingKeys: String, CodingKey {
+            case id
+            case menuID = "menu_id"
+            case barID = "bar_id"
+            case contributorID = "contributor_id"
+            case seasonLabel = "season_label"
+            case seasonMonth = "season_month"
+            case isCurrent = "is_current"
+            case notes
+            case ocrStatus = "ocr_status"
+            case uploadedAt = "uploaded_at"
+            case createdAt = "created_at"
+            case confirmationCount = "confirmation_count"
+            case confidenceScore = "confidence_score"
+            case isOutdated = "is_outdated"
+            case menuImages = "menu_images"
+            case menuCocktails = "menu_cocktails"
+            case profiles
+            case bars
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(UUID.self, forKey: .id)
+            menuID = try container.decode(UUID.self, forKey: .menuID)
+            barID = try container.decode(UUID.self, forKey: .barID)
+            contributorID = try container.decodeIfPresent(UUID.self, forKey: .contributorID)
+            seasonLabel = try container.decodeIfPresent(String.self, forKey: .seasonLabel)
+            seasonMonth = try container.decodeIfPresent(Int.self, forKey: .seasonMonth)
+            isCurrent = try container.decode(Bool.self, forKey: .isCurrent)
+            notes = try container.decodeIfPresent(String.self, forKey: .notes)
+            ocrStatus = try container.decode(String.self, forKey: .ocrStatus)
+            uploadedAt = try container.decode(Date.self, forKey: .uploadedAt)
+            createdAt = try container.decode(Date.self, forKey: .createdAt)
+            confirmationCount = try container.decodeIfPresent(Int.self, forKey: .confirmationCount) ?? 0
+            confidenceScore = try container.decodeIfPresent(Float.self, forKey: .confidenceScore) ?? 0
+            isOutdated = try container.decodeIfPresent(Bool.self, forKey: .isOutdated) ?? false
+            menuImages = try container.decodeIfPresent([MenuVersionRow.MenuImageSummaryRow].self, forKey: .menuImages)
+            menuCocktails = try container.decodeIfPresent([MenuVersionRow.MenuCocktailIDRow].self, forKey: .menuCocktails)
+            profiles = try container.decodeIfPresent(MenuVersionRow.ContributorJoin.self, forKey: .profiles)
+            bars = try container.decodeIfPresent(BarRow.self, forKey: .bars)
+        }
+
+        func toDiscoveryItem(versionNumber: Int, storage: StorageService, coordinate: Coordinate) -> MenuDiscoveryItem? {
+            guard let barRow = bars else { return nil }
+            let sortedImages = (menuImages ?? []).sorted { $0.sortOrder < $1.sortOrder }
+            let coverURL = sortedImages.first.flatMap { try? storage.publicURL(forStoragePath: $0.storagePath) }
+
+            let version = MenuVersion(
+                id: id,
+                menuID: menuID,
+                barID: barID,
+                contributorID: contributorID,
+                contributorName: profiles?.resolvedName,
+                seasonLabel: seasonLabel,
+                seasonMonth: seasonMonth,
+                isCurrent: isCurrent,
+                notes: notes,
+                ocrStatus: MenuOCRStatus(rawValue: ocrStatus) ?? .pending,
+                uploadedAt: uploadedAt,
+                createdAt: createdAt,
+                versionNumber: versionNumber,
+                imageCount: menuImages?.count ?? 0,
+                cocktailCount: menuCocktails?.count ?? 0,
+                coverImageURL: coverURL,
+                confirmationCount: confirmationCount,
+                confidenceScore: confidenceScore,
+                isOutdated: isOutdated
+            )
+            return MenuDiscoveryItem(
+                version: version,
+                bar: barRow.toBar(relativeTo: coordinate)
+            )
+        }
+    }
+
+    struct MenuViewerStateRow: Decodable {
+        let hasConfirmed: Bool
+        let hasReportedOutdated: Bool
+
+        enum CodingKeys: String, CodingKey {
+            case hasConfirmed = "has_confirmed"
+            case hasReportedOutdated = "has_reported_outdated"
+        }
+
+        var toViewerState: MenuViewerState {
+            MenuViewerState(
+                hasConfirmed: hasConfirmed,
+                hasReportedOutdated: hasReportedOutdated
+            )
+        }
+    }
+
+    struct MenuValidationResultRow: Decodable {
+        let confirmationCount: Int?
+        let confidenceScore: Float?
+        let isOutdated: Bool?
+        let outdatedReportCount: Int?
+
+        enum CodingKeys: String, CodingKey {
+            case confirmationCount = "confirmation_count"
+            case confidenceScore = "confidence_score"
+            case isOutdated = "is_outdated"
+            case outdatedReportCount = "outdated_report_count"
         }
     }
 

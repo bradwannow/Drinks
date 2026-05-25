@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuCocktailEntryRow: View {
     let entry: MenuCocktailEntry
+    var changeKind: MenuCocktailChangeKind?
 
     var body: some View {
         PourCard {
@@ -11,6 +12,10 @@ struct MenuCocktailEntryRow: View {
                         .headlineStyle()
 
                     Spacer()
+
+                    if let changeKind {
+                        changeBadge(for: changeKind)
+                    }
 
                     if let price = entry.priceText {
                         Text(price)
@@ -32,6 +37,18 @@ struct MenuCocktailEntryRow: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private func changeBadge(for kind: MenuCocktailChangeKind) -> some View {
+        switch kind {
+        case .added:
+            BadgePill(title: "New", icon: "plus", tint: AppColors.accent)
+        case .seasonalReturn:
+            BadgePill(title: "Return", icon: "leaf.fill", tint: AppColors.accentMuted)
+        case .removed:
+            EmptyView()
         }
     }
 }

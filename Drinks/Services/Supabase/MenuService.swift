@@ -11,50 +11,77 @@ final class MenuService {
         static let menuCocktails = "menu_cocktails"
     }
 
+    private enum RPC {
+        static let confirmMenu = "confirm_menu"
+        static let reportOutdated = "report_menu_outdated"
+        static let viewerState = "menu_viewer_state"
+    }
+
     private let manager: SupabaseManager
     private let auth: AuthService
     private let storage: StorageService
+    private let referenceCoordinate: Coordinate
 
     init(
         manager: SupabaseManager = .shared,
         auth: AuthService = .shared,
-        storage: StorageService = .shared
+        storage: StorageService = .shared,
+        referenceCoordinate: Coordinate = .defaultReference
     ) {
         self.manager = manager
         self.auth = auth
         self.storage = storage
+        self.referenceCoordinate = referenceCoordinate
     }
 
     func fetchBarMenuArchive(forBar barID: UUID) async throws -> BarMenuArchive {
-        async let versionsTask = fetchMenuVersions(forBar: barID)
-        let versions = try await versionsTask
-
+        let versions = try await fetchMenuVersions(forBar: barID)
         let currentVersion = versions.first(where: \.isCurrent)
-        let currentDetail: MenuVersionDetail?
-        if let currentVersion {
-            currentDetail = try await fetchMenuVersionDetail(id: currentVersion.id)
-        } else {
-            currentDetail = nil
-        }
-
         let previousMenus = versions.filter { !$0.isCurrent }
         let seasonalRotations = versions.filter { $0.isSeasonal && !$0.isCurrent }
 
-        let recentlyAdded: [MenuCocktailEntry]
-        if let currentDetail {
-            recentlyAdded = Array(currentDetail.cocktails.prefix(6))
-        } else if let latest = versions.first {
-            let detail = try await fetchMenuVersionDetail(id: latest.id)
-            recentlyAdded = Array(detail.cocktails.prefix(6))
-        } else {
-            recentlyAdded = []
+        var currentDetail: MenuVersionDetail?
+        var menuComparison: MenuComparison?
+        var recentlyAdded: [MenuCocktailEntry] = []
+
+        if let currentVersion {
+            currentDetail = try await fetchMenuVersionDetail(id: currentVersion.id)
+
+            if let previous = previousMenus.first {
+                let previousDetail = try await fetchMenuVersionDetail(id: previous.id)
+                let historicalCocktails = try await fetchHistoricalSeasonalCocktails(
+                    forBar: barID,
+                    excludingVersionIDs: [currentVersion.id, previous.id]
+                )
+                let comparison = MenuComparisonUtility.compare(
+                    current: currentDetail?.cocktails ?? [],
+                    previous: previousDetail.cocktails,
+                    historicalSeasonal: historicalCocktails
+                )
+                menuComparison = comparison
+                let addedNames = Set(
+                    (comparison.added + comparison.seasonalReturns)
+                        .map { $0.lowercased() }
+                )
+                recentlyAdded = (currentDetail?.cocktails ?? []).filter {
+                    addedNames.contains($0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
+                }
+                if recentlyAdded.count > 6 {
+                    recentlyAdded = Array(recentlyAdded.prefix(6))
+                }
+                if var detail = currentDetail {
+                    detail.comparison = comparison
+                    currentDetail = detail
+                }
+            }
         }
 
         return BarMenuArchive(
             currentMenu: currentDetail,
             previousMenus: previousMenus,
             recentlyAddedCocktails: recentlyAdded,
-            seasonalRotations: seasonalRotations
+            seasonalRotations: seasonalRotations,
+            menuComparison: menuComparison
         )
     }
 
@@ -80,7 +107,7 @@ final class MenuService {
 
     func fetchMenuVersionDetail(id: UUID) async throws -> MenuVersionDetail {
         let client = try manager.requireClient()
-        let row: DatabaseRecords.MenuVersionDetailRow = try await client
+        async let detailTask: DatabaseRecords.MenuVersionDetailRow = client
             .from(Table.menuVersions)
             .select("""
                 *,
@@ -93,7 +120,80 @@ final class MenuService {
             .execute()
             .value
 
-        return try row.toMenuVersionDetail(storage: storage)
+        async let viewerStateTask = fetchViewerState(for: id)
+
+        let row = try await detailTask
+        let viewerState = await viewerStateTask
+        var detail = try row.toMenuVersionDetail(storage: storage)
+        detail.viewerState = viewerState
+        return detail
+    }
+
+    func fetchRecentlyUpdatedMenus(limit: Int = 8) async throws -> [MenuDiscoveryItem] {
+        try await fetchDiscoveryMenus(
+            limit: limit,
+            filter: { _ in true }
+        )
+    }
+
+    func fetchMenusUpdatedTonight(limit: Int = 6) async throws -> [MenuDiscoveryItem] {
+        let cutoff = Date().addingTimeInterval(-24 * 60 * 60)
+        return try await fetchDiscoveryMenus(limit: limit) { $0.uploadedAt >= cutoff }
+    }
+
+    func fetchNewSeasonalMenus(limit: Int = 6) async throws -> [MenuDiscoveryItem] {
+        try await fetchDiscoveryMenus(limit: limit) { row in
+            row.seasonLabel != nil || row.seasonMonth != nil
+        }
+    }
+
+    func confirmMenu(versionID: UUID) async throws -> MenuVersion {
+        let client = try manager.requireClient()
+        guard try await auth.currentSession()?.user.id != nil else {
+            throw NetworkError.unauthorized
+        }
+
+        let result: DatabaseRecords.MenuValidationResultRow = try await client
+            .rpc(RPC.confirmMenu, params: MenuVersionIDParam(menuVersionID: versionID))
+            .execute()
+            .value
+
+        var detail = try await fetchMenuVersionDetail(id: versionID)
+        if let count = result.confirmationCount {
+            detail = updatedDetail(detail, confirmationCount: count, confidenceScore: result.confidenceScore, isOutdated: result.isOutdated ?? false)
+        }
+        return detail.version
+    }
+
+    func reportMenuOutdated(versionID: UUID) async throws -> MenuVersion {
+        let client = try manager.requireClient()
+        guard try await auth.currentSession()?.user.id != nil else {
+            throw NetworkError.unauthorized
+        }
+
+        let result: DatabaseRecords.MenuValidationResultRow = try await client
+            .rpc(RPC.reportOutdated, params: MenuVersionIDParam(menuVersionID: versionID))
+            .execute()
+            .value
+
+        var detail = try await fetchMenuVersionDetail(id: versionID)
+        detail = updatedDetail(
+            detail,
+            confirmationCount: detail.version.confirmationCount,
+            confidenceScore: detail.version.confidenceScore,
+            isOutdated: result.isOutdated ?? detail.version.isOutdated
+        )
+        return detail.version
+    }
+
+    func fetchMenuComparison(currentVersionID: UUID, previousVersionID: UUID) async throws -> MenuComparison {
+        async let currentTask = fetchMenuVersionDetail(id: currentVersionID)
+        async let previousTask = fetchMenuVersionDetail(id: previousVersionID)
+        let (current, previous) = try await (currentTask, previousTask)
+        return MenuComparisonUtility.compare(
+            current: current.cocktails,
+            previous: previous.cocktails
+        )
     }
 
     func createMenuUpload(
@@ -212,6 +312,107 @@ final class MenuService {
             .execute()
     }
 
+    private func fetchDiscoveryMenus(
+        limit: Int,
+        filter: (DatabaseRecords.MenuDiscoveryRow) -> Bool
+    ) async throws -> [MenuDiscoveryItem] {
+        let client = try manager.requireClient()
+        let rows: [DatabaseRecords.MenuDiscoveryRow] = try await client
+            .from(Table.menuVersions)
+            .select("""
+                *,
+                menu_images(id, storage_path, sort_order),
+                menu_cocktails(id),
+                profiles(display_name, username),
+                bars(*)
+            """)
+            .eq("is_current", value: true)
+            .eq("is_outdated", value: false)
+            .order("uploaded_at", ascending: false)
+            .limit(limit * 2)
+            .execute()
+            .value
+
+        return rows
+            .filter(filter)
+            .prefix(limit)
+            .enumerated()
+            .compactMap { index, row in
+                row.toDiscoveryItem(
+                    versionNumber: rows.count - index,
+                    storage: storage,
+                    coordinate: referenceCoordinate
+                )
+            }
+    }
+
+    private func fetchHistoricalSeasonalCocktails(
+        forBar barID: UUID,
+        excludingVersionIDs: [UUID]
+    ) async throws -> [MenuCocktailEntry] {
+        let versions = try await fetchMenuVersions(forBar: barID)
+        let seasonalVersions = versions.filter {
+            $0.isSeasonal && !excludingVersionIDs.contains($0.id)
+        }
+
+        var entries: [MenuCocktailEntry] = []
+        for version in seasonalVersions.prefix(4) {
+            let detail = try await fetchMenuVersionDetail(id: version.id)
+            entries.append(contentsOf: detail.cocktails)
+        }
+        return entries
+    }
+
+    private func fetchViewerState(for menuVersionID: UUID) async -> MenuViewerState {
+        do {
+            let client = try manager.requireClient()
+            let row: DatabaseRecords.MenuViewerStateRow = try await client
+                .rpc(RPC.viewerState, params: MenuVersionIDParam(menuVersionID: menuVersionID))
+                .execute()
+                .value
+            return row.toViewerState
+        } catch {
+            return .anonymous
+        }
+    }
+
+    private func updatedDetail(
+        _ detail: MenuVersionDetail,
+        confirmationCount: Int,
+        confidenceScore: Float?,
+        isOutdated: Bool
+    ) -> MenuVersionDetail {
+        let version = detail.version
+        let updatedVersion = MenuVersion(
+            id: version.id,
+            menuID: version.menuID,
+            barID: version.barID,
+            contributorID: version.contributorID,
+            contributorName: version.contributorName,
+            seasonLabel: version.seasonLabel,
+            seasonMonth: version.seasonMonth,
+            isCurrent: version.isCurrent,
+            notes: version.notes,
+            ocrStatus: version.ocrStatus,
+            uploadedAt: version.uploadedAt,
+            createdAt: version.createdAt,
+            versionNumber: version.versionNumber,
+            imageCount: version.imageCount,
+            cocktailCount: version.cocktailCount,
+            coverImageURL: version.coverImageURL,
+            confirmationCount: confirmationCount,
+            confidenceScore: confidenceScore ?? version.confidenceScore,
+            isOutdated: isOutdated
+        )
+        return MenuVersionDetail(
+            version: updatedVersion,
+            images: detail.images,
+            cocktails: detail.cocktails,
+            comparison: detail.comparison,
+            viewerState: detail.viewerState
+        )
+    }
+
     private func ensureMenu(forBar barID: UUID) async throws -> UUID {
         let client = try manager.requireClient()
 
@@ -236,6 +437,14 @@ final class MenuService {
             .value
 
         return created.id
+    }
+}
+
+private struct MenuVersionIDParam: Encodable {
+    let menuVersionID: UUID
+
+    enum CodingKeys: String, CodingKey {
+        case menuVersionID = "p_menu_version_id"
     }
 }
 

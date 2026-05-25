@@ -65,6 +65,11 @@
 		M1MENU011A2B3456789012341 /* MenuDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU111A2B3456789012341 /* MenuDetailViewModel.swift */; };
 		M1MENU012A2B3456789012341 /* MenuDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU112A2B3456789012341 /* MenuDetailView.swift */; };
 		M1MENU013A2B3456789012341 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU113A2B3456789012341 /* AppRoute.swift */; };
+		M1MENU014A2B3456789012341 /* MenuComparisonUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU114A2B3456789012341 /* MenuComparisonUtility.swift */; };
+		M1MENU015A2B3456789012341 /* MenuImageReorderStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU115A2B3456789012341 /* MenuImageReorderStrip.swift */; };
+		M1MENU016A2B3456789012341 /* MenuDiscoveryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU116A2B3456789012341 /* MenuDiscoveryCard.swift */; };
+		M1MENU017A2B3456789012341 /* MenuDiffSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU117A2B3456789012341 /* MenuDiffSection.swift */; };
+		M1MENU018A2B3456789012341 /* MenuValidationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1MENU118A2B3456789012341 /* MenuValidationBar.swift */; };
 		A7B8C9D0E1F2345678901249 /* BarMenuCocktail.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F2345678901249 /* BarMenuCocktail.swift */; };
 		A7B8C9D0E1F234567890124A /* HapticFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F234567890124A /* HapticFeedback.swift */; };
 		A7B8C9D0E1F234567890124B /* DetailNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B8C9D0E1F234567890124B /* DetailNavigation.swift */; };
@@ -215,6 +220,11 @@
 		M1MENU111A2B3456789012341 /* MenuDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuDetailViewModel.swift; sourceTree = "<group>"; };
 		M1MENU112A2B3456789012341 /* MenuDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuDetailView.swift; sourceTree = "<group>"; };
 		M1MENU113A2B3456789012341 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+		M1MENU114A2B3456789012341 /* MenuComparisonUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuComparisonUtility.swift; sourceTree = "<group>"; };
+		M1MENU115A2B3456789012341 /* MenuImageReorderStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuImageReorderStrip.swift; sourceTree = "<group>"; };
+		M1MENU116A2B3456789012341 /* MenuDiscoveryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuDiscoveryCard.swift; sourceTree = "<group>"; };
+		M1MENU117A2B3456789012341 /* MenuDiffSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuDiffSection.swift; sourceTree = "<group>"; };
+		M1MENU118A2B3456789012341 /* MenuValidationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuValidationBar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 		24E21C692FC279D9002C4733 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -339,6 +349,10 @@
 				M1MENU106A2B3456789012341 /* MenuTimelineCard.swift */,
 				M1MENU107A2B3456789012341 /* MenuCocktailEditRow.swift */,
 				M1MENU108A2B3456789012341 /* MenuCocktailEntryRow.swift */,
+				M1MENU115A2B3456789012341 /* MenuImageReorderStrip.swift */,
+				M1MENU116A2B3456789012341 /* MenuDiscoveryCard.swift */,
+				M1MENU117A2B3456789012341 /* MenuDiffSection.swift */,
+				M1MENU118A2B3456789012341 /* MenuValidationBar.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -365,6 +379,7 @@
 				M1MENU113A2B3456789012341 /* AppRoute.swift */,
 				D8E9F0A1B2C3456789012344 /* HappyHourUtility.swift */,
 				F5A6B7C8D9E0456789012342 /* FreshnessUtility.swift */,
+				M1MENU114A2B3456789012341 /* MenuComparisonUtility.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -754,6 +769,11 @@
 				M1MENU011A2B3456789012341 /* MenuDetailViewModel.swift in Sources */,
 				M1MENU012A2B3456789012341 /* MenuDetailView.swift in Sources */,
 				M1MENU013A2B3456789012341 /* AppRoute.swift in Sources */,
+				M1MENU014A2B3456789012341 /* MenuComparisonUtility.swift in Sources */,
+				M1MENU015A2B3456789012341 /* MenuImageReorderStrip.swift in Sources */,
+				M1MENU016A2B3456789012341 /* MenuDiscoveryCard.swift in Sources */,
+				M1MENU017A2B3456789012341 /* MenuDiffSection.swift in Sources */,
+				M1MENU018A2B3456789012341 /* MenuValidationBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

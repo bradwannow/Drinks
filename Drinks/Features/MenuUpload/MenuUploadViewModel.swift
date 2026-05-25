@@ -6,20 +6,30 @@ enum MenuUploadStep: Int, CaseIterable {
     case photos
     case details
     case review
+    case preview
+
+    var title: String {
+        switch self {
+        case .photos: return "Photos"
+        case .details: return "Details"
+        case .review: return "Review"
+        case .preview: return "Preview"
+        }
+    }
 }
 
 @MainActor
 final class MenuUploadViewModel: ObservableObject {
     @Published var step: MenuUploadStep = .photos
     @Published var selectedItems: [PhotosPickerItem] = []
-    @Published var previewImages: [UIImage] = []
-    @Published var imageData: [Data] = []
+    @Published var draftImages: [DraftMenuImage] = []
     @Published var ocrTexts: [String] = []
     @Published var cocktails: [DraftMenuCocktail] = []
     @Published var seasonLabel: String = MenuSeasonUtility.currentSeasonLabel()
     @Published var seasonMonth: Int = MenuSeasonUtility.currentMonth()
     @Published var isCurrent: Bool = true
     @Published var notes: String = ""
+    @Published var isEditingCocktails = false
     @Published private(set) var isProcessingOCR = false
     @Published private(set) var isUploading = false
     @Published private(set) var uploadError: NetworkError?
@@ -34,29 +44,47 @@ final class MenuUploadViewModel: ObservableObject {
         self.menuService = menuService
     }
 
+    var imageData: [Data] {
+        draftImages.map(\.data)
+    }
+
+    var previewImages: [UIImage] {
+        draftImages.map(\.image)
+    }
+
     var canAdvanceFromPhotos: Bool {
-        !imageData.isEmpty && !isProcessingOCR
+        !draftImages.isEmpty && !isProcessingOCR
     }
 
     var canSubmit: Bool {
-        !imageData.isEmpty && !isUploading
+        !draftImages.isEmpty && !isUploading
+    }
+
+    var lowConfidenceCount: Int {
+        cocktails.filter { $0.hasLowConfidence }.count
+    }
+
+    var sortedCocktailsForReview: [DraftMenuCocktail] {
+        cocktails.sorted { lhs, rhs in
+            if lhs.hasLowConfidence != rhs.hasLowConfidence {
+                return lhs.hasLowConfidence
+            }
+            return false
+        }
     }
 
     func loadSelectedPhotos() async {
-        var loadedData: [Data] = []
-        var loadedImages: [UIImage] = []
+        var loaded: [DraftMenuImage] = []
 
         for item in selectedItems {
             if let data = try? await item.loadTransferable(type: Data.self),
                let compressed = StorageService.compressedJPEGData(from: data),
                let image = UIImage(data: compressed) {
-                loadedData.append(compressed)
-                loadedImages.append(image)
+                loaded.append(DraftMenuImage(image: image, data: compressed))
             }
         }
 
-        imageData = loadedData
-        previewImages = loadedImages
+        draftImages = loaded
     }
 
     func runOCR() async {
@@ -72,8 +100,9 @@ final class MenuUploadViewModel: ObservableObject {
         ocrTexts = texts
 
         cocktails = await MenuOCRService.parseCocktails(from: imageData)
+        sortCocktailsForReview()
         if cocktails.isEmpty {
-            cocktails = [DraftMenuCocktail(name: "", description: "")]
+            cocktails = [DraftMenuCocktail(name: "", description: "", isManuallyEdited: true)]
         }
     }
 
@@ -86,6 +115,8 @@ final class MenuUploadViewModel: ObservableObject {
         case .details:
             step = .review
         case .review:
+            step = .preview
+        case .preview:
             break
         }
     }
@@ -95,12 +126,37 @@ final class MenuUploadViewModel: ObservableObject {
         step = previous
     }
 
+    func removeImage(id: UUID) {
+        draftImages.removeAll { $0.id == id }
+        selectedItems = []
+    }
+
+    func moveImage(from source: UUID, to destination: UUID) {
+        guard
+            let fromIndex = draftImages.firstIndex(where: { $0.id == source }),
+            let toIndex = draftImages.firstIndex(where: { $0.id == destination }),
+            fromIndex != toIndex
+        else { return }
+
+        let item = draftImages.remove(at: fromIndex)
+        draftImages.insert(item, at: toIndex)
+    }
+
+    func moveCocktail(from source: IndexSet, to destination: Int) {
+        cocktails.move(fromOffsets: source, toOffset: destination)
+    }
+
     func addCocktail() {
-        cocktails.append(DraftMenuCocktail(name: "", description: "", isManuallyEdited: true))
+        cocktails.insert(DraftMenuCocktail(name: "", description: "", isManuallyEdited: true), at: 0)
     }
 
     func removeCocktail(id: UUID) {
         cocktails.removeAll { $0.id == id }
+    }
+
+    func updateCocktail(_ cocktail: DraftMenuCocktail) {
+        guard let index = cocktails.firstIndex(where: { $0.id == cocktail.id }) else { return }
+        cocktails[index] = cocktail
     }
 
     func submit() async {
@@ -136,10 +192,26 @@ final class MenuUploadViewModel: ObservableObject {
 
         isUploading = false
     }
+
+    private func sortCocktailsForReview() {
+        cocktails.sort { lhs, rhs in
+            if lhs.hasLowConfidence != rhs.hasLowConfidence {
+                return lhs.hasLowConfidence
+            }
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+    }
 }
 
 private extension String {
     var nilIfEmpty: String? {
         isEmpty ? nil : self
+    }
+}
+
+private extension DraftMenuCocktail {
+    var hasLowConfidence: Bool {
+        guard let ocrConfidence else { return false }
+        return ocrConfidence < 0.6 && !isManuallyEdited
     }
 }

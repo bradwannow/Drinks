@@ -28,7 +28,8 @@ struct BarDetailView: View {
                             currentMenu: nil,
                             previousMenus: [],
                             recentlyAddedCocktails: [],
-                            seasonalRotations: []
+                            seasonalRotations: [],
+                            menuComparison: nil
                         )
                     ),
                     isPlaceholder: true
@@ -207,6 +208,8 @@ struct BarDetailView: View {
             } else if let currentMenu = archive.currentMenu {
                 NavigationLink(value: currentMenu) {
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
+                        FreshnessBadgeStrip(badges: currentMenu.version.freshnessBadges(), maxVisible: 3)
+
                         if !currentMenu.images.isEmpty {
                             MenuImageCarousel(images: currentMenu.images, height: 280)
                         }
@@ -215,6 +218,10 @@ struct BarDetailView: View {
                     }
                 }
                 .buttonStyle(.plain)
+
+                if let comparison = archive.menuComparison, comparison.hasChanges {
+                    MenuDiffSection(comparison: comparison)
+                }
             } else {
                 PourCard {
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -315,8 +322,9 @@ struct BarDetailView: View {
             SectionHeader(title: "Previous Menus", subtitle: "Menu history timeline")
 
             VStack(spacing: AppSpacing.sm) {
-                ForEach(menus.prefix(5)) { version in
-                    NavigationLink(value: MenuVersionRoute(id: version.id)) {
+                ForEach(Array(menus.prefix(5).enumerated()), id: \.element.id) { index, version in
+                    let previousID = index + 1 < menus.count ? menus[index + 1].id : nil
+                    NavigationLink(value: MenuVersionRoute(id: version.id, previousVersionID: previousID)) {
                         MenuTimelineCard(version: version)
                     }
                     .buttonStyle(.plain)
